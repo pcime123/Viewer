@@ -394,7 +394,7 @@ public abstract class CameraInput extends VideoInput
             recorder.setAudioChannels(profile.audioChannels);
             recorder.setAudioSamplingRate(profile.audioSampleRate);
             recorder.setAudioEncoder(profile.audioCodec);
-        }
+          }
 //        recorder.setProfile(profile);
         recorder.setMaxFileSize(3500000000L);
 
@@ -420,8 +420,8 @@ public abstract class CameraInput extends VideoInput
 //            recorder.setMaxFileSize(50);
         } catch (IllegalStateException | IOException e) {
             Log.d(TAG, "IllegalStateException preparing MediaRecorder: " + e.getMessage());
-            stopRecording(false);
-//            releaseMediaRecorder();
+//            stopRecording(false);
+            releaseMediaRecorder();
             return false;
         }
         return true;

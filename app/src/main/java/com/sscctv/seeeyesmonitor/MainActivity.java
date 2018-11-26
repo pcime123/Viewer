@@ -323,7 +323,7 @@ public class MainActivity extends AppCompatActivity
         tdm_set.setFocusable(false);
 
 //
-
+        setVolumeControlStream(STREAM_MUSIC);      // 미디어 볼륨 컨트롤 고정
         //        getLayoutValue();
 //        mSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(1920 , 1200));
 //        Log.d(TAG, "Layout: " + mSurfaceView.getWidth() + " - " + mSurfaceView.getHeight());
@@ -385,6 +385,11 @@ public class MainActivity extends AppCompatActivity
         }
         createVideoInput();
 
+        Intent intent = new Intent();
+        intent.setAction("com.sscctv.seeeyesmonitor");
+        intent.putExtra("state","resume");
+        sendBroadcast(intent);
+
         mVideoThread = new HandlerThread("VideoThread");
         mVideoThread.start();
         mVideoHandler = new Handler(mVideoThread.getLooper());
@@ -412,7 +417,6 @@ public class MainActivity extends AppCompatActivity
         startWatchingExternalStorage();
 
         // 미디어 볼륨 컨트롤 고정
-        setVolumeControlStream(STREAM_MUSIC);      // 미디어 볼륨 컨트롤 고정
 
         zoomTask = zoomTimeTask();
 
@@ -447,6 +451,11 @@ public class MainActivity extends AppCompatActivity
             zoomTask.cancel();
             zoomTimer = null;
         }
+
+        Intent intent = new Intent();
+        intent.setAction("com.sscctv.seeeyesmonitor");
+        intent.putExtra("state","pause");
+        sendBroadcast(intent);
 
         closeDrawer();
 
@@ -859,12 +868,22 @@ public class MainActivity extends AppCompatActivity
         if (hasNoSignal(signalInfo)) {
             noSignal = View.VISIBLE;
 
+            Intent intent = new Intent();
+            intent.setAction("com.sscctv.seeeyesmonitor");
+            intent.putExtra("state","nosignal");
+            sendBroadcast(intent);
+
             builder.append("-----\n");
             hideCrcStats();
             hideTdmSetup();
 
         } else {
             noSignal = View.INVISIBLE;
+
+            Intent intent = new Intent();
+            intent.setAction("com.sscctv.seeeyesmonitor");
+            intent.putExtra("state","signal");
+            sendBroadcast(intent);
 
             if (sourceId.equals(VideoSource.CVBS)) {
                 switch (cvbs_Input) {
@@ -1711,8 +1730,12 @@ public class MainActivity extends AppCompatActivity
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (isPlaying)
-                    audioManager.setParameters("dac_volume=" + audioManager.getStreamVolume(STREAM_MUSIC));
+//                Log.d(TAG, "GetVolumeControlStream: " + getVolumeControlStream());
+
+//                if (isPlaying)
+//                    Log.d(TAG, "!!!GetVolumeControlStream: " + getVolumeControlStream());
+                if(mSignalInfo.signal)
+                audioManager.setParameters("dac_volume=" + audioManager.getStreamVolume(STREAM_MUSIC));
                 break;
             case KeyEvent.KEYCODE_ENTER:
                 switch (mMode) {
@@ -1770,8 +1793,8 @@ public class MainActivity extends AppCompatActivity
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
-                if (isPlaying)
-                    audioManager.setParameters("dac_volume=" + audioManager.getStreamVolume(STREAM_MUSIC));
+//                if (isPlaying)
+//                    audioManager.setParameters("dac_volume=" + audioManager.getStreamVolume(STREAM_MUSIC));
                 break;
 
             case KeyEvent.KEYCODE_MENU:
@@ -3087,6 +3110,9 @@ public class MainActivity extends AppCompatActivity
 
         mRecordingTimeText.postDelayed(mUpdateRecordingTimeTask, 1000);
         showToast(R.string.msg_recording_started);
+
+
+
     }
 
     private void onRecordingStop(boolean readyToRec, boolean stopToast) {
@@ -3802,8 +3828,10 @@ public class MainActivity extends AppCompatActivity
         if (audioManager != null) {
 //            Log.d(TAG, "Set AudioMode");
             int audio_volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            Log.d(TAG, "AudioVolume: " + audio_volume);
             audioManager.setParameters("playback=" + mode + ";dac_volume=" + audio_volume);
-            audioManager.setStreamVolume(STREAM_MUSIC, audio_volume, 2);
+//            test();
+//            audioManager.setStreamVolume(STREAM_MUSIC, audio_volume, F);
         }
 
     }
@@ -3825,16 +3853,15 @@ public class MainActivity extends AppCompatActivity
                 bufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat);
                 //Log.d(TAG, "AudioRecord buffer size = " + bufferSize);       // min = 8960 // the minimum buffer size expressed in bytes
                 audioRecorder = new AudioRecord(MediaRecorder.AudioSource.CAMCORDER, samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat, bufferSize * 48);
+//                 audioRecorder.startRecording();
 
                 samplingRate = 44100;
                 bufferSize = AudioTrack.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_OUT_STEREO, audioFormat);
                 //Log.d(TAG, "AudioTrack  buffer size = " + bufferSize);       // min = 18432
                 audioPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, AudioFormat.CHANNEL_OUT_STEREO, audioFormat, bufferSize, AudioTrack.MODE_STREAM);
-
                 audioPlayer.flush();
                 audioPlayer.play();
 
-//                 audioRecorder.startRecording();
 
                 playThread = new Thread(new Runnable() {
                     public void run() {
@@ -3858,7 +3885,6 @@ public class MainActivity extends AppCompatActivity
 
         while (isPlaying) {
             readShorts = audioRecorder.read(sData, 0, bufferSize / 2);
-
             if ((readShorts != AudioRecord.ERROR_INVALID_OPERATION) && (readShorts != AudioRecord.ERROR_BAD_VALUE)) {
                 audioPlayer.write(sData, 0, readShorts);
                 audioPlayer.flush();
@@ -3866,6 +3892,7 @@ public class MainActivity extends AppCompatActivity
             if (stopFlag) {
                 isPlaying = false;
             }
+
         }
 //
 //        if (audioPlayer != null) {
@@ -3887,7 +3914,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void stopHdmiAudioPlay() {
-        Log.d(TAG, "stopHdmiAudioPlay()");
+
         if (isPlaying) {
             stopFlag = true;
             //isPlaying = false;
