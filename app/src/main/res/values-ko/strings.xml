@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Viewer</string>
+
+    <string name="nav_drawer_open">메뉴 열기</string>
+    <string name="nav_drawer_close">메뉴 닫기</string>
+
+    <string name="action_settings">설정</string>
+
+    <string name="no_signal">신호 없음</string>
+
+    <string name="level_good">Good</string>
+    <string name="level_ng">NG</string>
+    <string name="level_normal">Normal</string>
+
+    <string name="menu_ptz">PTZ</string>
+    <string name="menu_record">녹화</string>
+    <string name="menu_snapshot">캡쳐</string>
+    <string name="menu_play">갤러리</string>
+    <string name="menu_poc">PoC</string>
+    <string name="menu_settings">설정</string>
+
+    <string name="category_ptz">PTZ 설정</string>
+    <string name="category_ptz_utc">PTZ/UTC 설정</string>
+
+    <string name="category_user">사용자 설정</string>
+
+    <string name="ptz_mode_tx">RS-485 TX</string>
+    <string name="ptz_mode_rx">RS-485 RX</string>
+    <string name="ptz_mode_analyze">Analyze</string>
+    <string name="ptz_mode_utc">UTC</string>
+
+    <string name="label_mode">동작모드</string>
+    <string name="label_protocol">프로토콜</string>
+    <string name="label_address">어드레스</string>
+    <string name="label_baudrate">통신속도</string>
+    <string name="label_termination">종단저항</string>
+    <string name="label_media_folder">저장 위치</string>
+    <string name="label_menu_transparency">메뉴 투명도</string>
+    <string name="label_level_meter">레벨/포커스 메타</string>
+    <string name="label_touch_lock">터치 잠금</string>
+    <string name="label_addr">어드레스</string>
+
+    <string name="label_command">명령</string>
+    <string name="label_packet">패킷</string>
+
+    <string name="key_tilt">TILT</string>
+    <string name="key_pan">PAN</string>
+    <string name="key_zoom">ZOOM</string>
+    <string name="key_focus">FOCUS</string>
+    <string name="key_updown">상/하</string>
+    <string name="key_leftright">좌/우</string>
+
+    <string name="key_pantilt">PT</string>
+    <string name="key_zoomfocus">ZF</string>
+    <string name="key_ptz">PTZ</string>
+    <string name="key_osd">OSD</string>
+    <string name="key_enter">선택</string>
+    <string name="key_clear">지우기</string>
+
+    <string name="key_prev">BACK</string>
+
+    <string name="msg_recording_started">녹화를 시작했습니다</string>
+    <string name="msg_recording_stopped">녹화를 마쳤습니다</string>
+    <string name="msg_snapshot_complete">화면을 저장했습니다</string>
+    <string name="msg_video_input_not_found">영상 입력 장치를 찾을 수 없습니다</string>
+    <string name="msg_no_signal_to_capture">저장할 수 있는 입력 신호가 없습니다</string>
+    <string name="msg_starting_poc_check">PoC 연결 확인을 시작합니다</string>
+    <string name="msg_enable_poc_power">카메라에 전원을 공급합니다</string>
+
+    <string name="recording_time">녹화 시간</string>
+
+    <string name="state_on">켜짐</string>
+    <string name="state_off">꺼짐</string>
+
+    <string name="storage_internal">내부</string>
+    <string name="storage_external">외부</string>
+
+    <string name="poc_state_stb_check">연결 확인 중</string>
+    <string name="poc_state_power_off">동작 대기 중</string>
+    <string name="poc_state_power_on">전원 출력</string>
+    <string name="poc_state_power_break">전원 차단</string>
+    <string name="poc_state_power_check">동작 중</string>
+    <string name="poc_state_link_check">연결 확인 중</string>
+    <string name="poc_state_link_ok">전원 공급 준비</string>
+    <string name="poc_state_cable_open">케이블 연결 안됨</string>
+    <string name="poc_state_short">선로 단락</string>
+    <string name="poc_state_over_current">전류 초과</string>
+    <string name="poc_state_cable_none">케이블 연결 안됨</string>
+
+    <string name="yes">예</string>
+    <string name="no">아니오</string>
+    <string name="key_esc">BACK</string>
+    <string name="storage_folder">REC/PIC</string>
+    <string name="key_exit">나가기</string>
+    <string name="msg_storage_space">저장 공간이 부족합니다.</string>
+    <string name="close">닫기</string>
+    <string name="poc_not_support">POC 기능이 지원되지 않습니다.</string>
+    <string name="msg_not_support_recording">죄송합니다. 녹화가 지원되지 않는 해상도 입니다.</string>
+    <string name="pref_view_change">화면 비율</string>
+    <string name="please_wait">잠시만 기다려주십시오…</string>
+    <string name="please_wait_main">진행 중 입니다...</string>
+    <string name="label_recording_resolution">녹화 해상도</string>
+    <string name="storage">"저장 : "</string>
+    <string name="poc_pse_support">PoE가 동작하고 있습니다. PoE를 종료 후 시도해주세요.</string>
+    <string name="maxSize">녹화가 중지되었습니다. 녹화 파일은 최대 3G까지 생성 가능합니다. </string>
+    <string name="rec_error">녹화 중 치명적인 문제가 발생했습니다. 재부팅을 해주세요.</string>
+
+</resources>

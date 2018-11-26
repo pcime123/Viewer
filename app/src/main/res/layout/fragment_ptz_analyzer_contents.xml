@@ -1,0 +1,53 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.sscctv.seeeyesmonitor.PtzAnalyzerContentsFragment">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/ptz_analyzer_header"
+        android:background="@drawable/rounded_overlay"
+        android:paddingTop="@dimen/ptz_label_padding"
+        android:paddingBottom="@dimen/ptz_label_padding"
+        android:paddingLeft="@dimen/ptz_settings_padding"
+        android:paddingRight="@dimen/ptz_settings_padding">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:typeface="monospace"
+            android:layout_weight="1"
+            android:text="@string/label_addr" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/label_command"
+            android:typeface="monospace"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/label_packet"
+            android:typeface="monospace"
+            android:layout_weight="8" />
+    </LinearLayout>
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:id="@+id/ptz_analyzer_contents"
+        android:choiceMode="none"
+        android:layout_below="@+id/ptz_analyzer_header"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:paddingLeft="@dimen/ptz_settings_padding"
+        android:paddingRight="@dimen/ptz_settings_padding" />
+</RelativeLayout>

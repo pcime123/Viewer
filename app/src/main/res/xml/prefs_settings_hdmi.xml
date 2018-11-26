@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="@string/category_user">
+
+        <!--<com.sscctv.seeeyesmonitor.SeekBarPreference-->
+            <!--android:key="@string/pref_menu_transparency"-->
+            <!--android:defaultValue="5"-->
+            <!--app:max="10"-->
+            <!--android:layout="@layout/preference_no_summary"-->
+            <!--android:widgetLayout="@layout/preference_widget_seekbar"-->
+            <!--android:title="@string/label_menu_transparency" />-->
+
+        <com.sscctv.seeeyesmonitor.SwitchPreference
+            android:key="@string/pref_media_folder"
+            android:defaultValue="false"
+            android:layout="@layout/preference_no_summary"
+            android:widgetLayout="@layout/preference_widget_switch"
+            android:title="@string/label_media_folder"
+            android:switchTextOn="@string/storage_external"
+            android:switchTextOff="@string/storage_internal" />
+
+        <!--<com.sscctv.seeeyesmonitor.SwitchPreference-->
+            <!--android:defaultValue="true"-->
+            <!--android:key="@string/pref_recording_resolution"-->
+            <!--android:layout="@layout/preference_no_summary"-->
+            <!--android:switchTextOff="@string/recording_1"-->
+            <!--android:switchTextOn="@string/recording_2"-->
+            <!--android:title="@string/label_recording_resolution"-->
+            <!--android:widgetLayout="@layout/preference_widget_switch" />-->
+
+        <!--<com.sscctv.seeeyesmonitor.SwitchPreference
+            android:key="@string/pref_touch_lock"
+            android:defaultValue="false"
+            android:layout="@layout/preference_no_summary"
+            android:widgetLayout="@layout/preference_widget_switch"
+            android:title="@string/label_touch_lock"
+            android:switchTextOn="@string/state_on"
+            android:switchTextOff="@string/state_off" />-->
+
+    </PreferenceCategory>
+</PreferenceScreen>

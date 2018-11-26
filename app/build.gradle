@@ -1,0 +1,53 @@
+apply plugin: 'com.android.application'
+
+android {
+    signingConfigs {
+        seeeyes {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('E:/001. Project/006. Monitor/TEST_M/security/platform.jks')
+            storePassword 'android'
+        }
+    }
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.sscctv.seeeyesmonitor"
+        minSdkVersion 21
+        targetSdkVersion 27
+        versionCode 2000
+        versionName '2.0.0'
+        multiDexEnabled true
+
+    }
+    buildTypes {
+        debug{
+
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.seeeyes
+        }
+    }
+    productFlavors {
+    }
+    buildToolsVersion '27.0.3'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    testImplementation 'junit:junit:4.12'
+    implementation project(':seeeyes')
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.android.support:support-v4:27.1.1'
+    implementation 'com.android.support:preference-v7:27.1.1'
+    implementation 'com.android.support:cardview-v7:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+}
+
+

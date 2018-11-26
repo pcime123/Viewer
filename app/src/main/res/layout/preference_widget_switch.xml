@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Switch xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/switchWidget"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@null"
+    android:focusable="false"
+    android:showText="true"
+    android:switchMinWidth="200dp"
+    android:textSize="@dimen/text_size"
+    android:switchTextAppearance="?android:attr/textAppearanceMedium"
+    android:thumb="@drawable/switch_thumb_selector"
+    android:track="@drawable/switch_track" />
+
+    <!--<Switch xmlns:android="http://schemas.android.com/apk/res/android"--><!--xmlns:tools="http://schemas.android.com/tools"--><!--tools:ignore="NewApi"--><!--android:id="@+id/switchWidget"--><!--android:layout_width="match_parent"--><!--android:layout_height="50dp"--><!--android:focusable="false"--><!--android:track="@drawable/switch_track_selector"--><!--android:thumb="@drawable/switch_thumb_selector"--><!--android:background="@null" />--><!--&lt;!&ndash;android:thumb=""&ndash;&gt;-->
+
+
+
+
+
+

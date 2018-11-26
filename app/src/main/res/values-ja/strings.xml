@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ビューア</string>
+
+    <string name="nav_drawer_open">メニューを開ける</string>
+    <string name="nav_drawer_close">メニューを閉じる</string>
+
+    <string name="action_settings">設定</string>
+
+    <string name="no_signal">信号無し</string>
+
+    <string name="level_good">Good</string>
+    <string name="level_ng">NG</string>
+    <string name="level_normal">Normal</string>
+
+    <string name="menu_ptz">PTZ</string>
+    <string name="menu_record">録画</string>
+    <string name="menu_snapshot">スクリーンショット</string>
+    <string name="menu_play">ギャラリー</string>
+    <string name="menu_poc">PoC</string>
+    <string name="menu_settings">設定</string>
+
+    <string name="category_ptz">PTZ設定</string>
+    <string name="category_ptz_utc">PTZ/ UTC設定</string>
+
+    <string name="category_user">ユーザー設定</string>
+
+    <string name="ptz_mode_tx">RS-485 TX</string>
+    <string name="ptz_mode_rx">RS-485 RX</string>
+    <string name="ptz_mode_analyze">分析</string>
+    <string name="ptz_mode_utc">UTC</string>
+
+    <string name="label_mode">動作モード</string>
+    <string name="label_protocol">プロトコル</string>
+    <string name="label_address">アドレス</string>
+    <string name="label_baudrate">通信速度</string>
+    <string name="label_termination">縦断抵抗</string>
+    <string name="label_media_folder">保存位置</string>
+    <string name="label_menu_transparency">メニュー透明度</string>
+    <string name="label_level_meter">レベル/ フォーカス・メタ</string>
+    <string name="label_touch_lock">タッチ·ロック</string>
+    <string name="label_addr">アドレス</string>
+
+    <string name="label_command">命令</string>
+    <string name="label_packet">パケット</string>
+
+    <string name="key_tilt">TILT</string>
+    <string name="key_pan">PAN</string>
+    <string name="key_zoom">ZOOM</string>
+    <string name="key_focus">FOCUS</string>
+    <string name="key_updown">上/ 下</string>
+    <string name="key_leftright">左/ 右</string>
+
+    <string name="key_pantilt">PT</string>
+    <string name="key_zoomfocus">ZF</string>
+    <string name="key_ptz">PTZ</string>
+    <string name="key_osd">OSD</string>
+    <string name="key_enter">選択</string>
+    <string name="key_clear">消去</string>
+
+    <string name="key_prev">BACK</string>
+
+    <string name="msg_recording_started">録画を始めました。</string>
+    <string name="msg_recording_stopped">録画を終えました。</string>
+    <string name="msg_snapshot_complete">画面を保存しました。</string>
+    <string name="msg_video_input_not_found">映像入力装置が見つかりません。</string>
+    <string name="msg_no_signal_to_capture">保存できる入力信号がありません。</string>
+    <string name="msg_starting_poc_check">PoC接続の確認を始めます。</string>
+    <string name="msg_enable_poc_power">カメラに電源を供給します。</string>
+
+    <string name="recording_time">録画時間</string>
+
+    <string name="state_on">ON</string>
+    <string name="state_off">OFF</string>
+
+    <string name="storage_internal">内部</string>
+    <string name="storage_external">外部</string>
+
+    <string name="poc_state_stb_check">接続確認中</string>
+    <string name="poc_state_power_off">動作待ち中</string>
+    <string name="poc_state_power_on">電源出力</string>
+    <string name="poc_state_power_break">電源遮断</string>
+    <string name="poc_state_power_check">動作中</string>
+    <string name="poc_state_link_check">接続確認中</string>
+    <string name="poc_state_link_ok">電源供給準備</string>
+    <string name="poc_state_cable_open">ケーブルの接続されていません。</string>
+    <string name="poc_state_short">線路短絡</string>
+    <string name="poc_state_over_current">電流超過</string>
+    <string name="poc_state_cable_none">ケーブルの接続されていません。</string>
+
+    <string name="yes">はい</string>
+    <string name="no">いいえ</string>
+    <string name="key_esc">BACK</string>
+    <string name="storage_folder">REC/PIC</string>
+    <string name="key_exit">終了</string>
+    <string name="msg_storage_space">ストレージの空き容量がありません。</string>
+    <string name="close">閉じる</string>
+    <string name="poc_not_support">POC機能を対応しません。</string>
+    <string name="msg_not_support_recording">録画を対応しない解像度です。</string>
+    <string name="pref_view_change">画面比率</string>
+    <string name="please_wait">少々お待ちください…</string>
+    <string name="please_wait_main">進行中です...</string>
+    <string name="label_recording_resolution">緑化解像度</string>
+    <string name="storage">ストレージ ：</string>
+    <string name="poc_pse_support">PoEが動作しています。PoEをOFFにした後、再試行してください。</string>
+    <string name="maxSize">録画ファイルは最大3Gまで制作可能なため、録画を終了します。</string>
+    <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
+
+</resources>

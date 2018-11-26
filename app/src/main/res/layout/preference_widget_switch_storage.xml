@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Switch xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/switchWidget"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:focusable="false"
+        android:showText="true"
+        android:switchMinWidth="200dp"
+        android:switchTextAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="@dimen/text_size"
+        android:thumb="@drawable/switch_thumb_selector"
+        android:track="@drawable/switch_track" />
+
+    <TextView
+        android:id="@+id/storage_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/switchWidget"
+        android:textSize="30sp"
+        android:text="TEST"/>
+
+</RelativeLayout><!--<Switch xmlns:android="http://schemas.android.com/apk/res/android"--><!--xmlns:tools="http://schemas.android.com/tools"--><!--tools:ignore="NewApi"--><!--android:id="@+id/switchWidget"--><!--android:layout_width="match_parent"--><!--android:layout_height="50dp"--><!--android:focusable="false"--><!--android:track="@drawable/switch_track_selector"--><!--android:thumb="@drawable/switch_thumb_selector"--><!--android:background="@null" />--><!--&lt;!&ndash;android:thumb=""&ndash;&gt;-->
+
+
+
+
+
+

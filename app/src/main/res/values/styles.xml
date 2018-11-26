@@ -1,0 +1,101 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/black</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="android:listSeparatorTextViewStyle">@style/ListHeaderTextViewStyle</item>
+        <item name="android:buttonBarButtonStyle">@style/BorderlessButtonStyle</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowBackground">@color/black</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!--설정 헤더 스타일을 바꾸기 위해 안드로이드 플랫폼 style.xml의-->
+    <!--Widget.TextView.ListSeparator와 Widget.Holo.TextView.ListSeparator를 가져와 수정함.-->
+    <!--이 스타일은 android private이므로 parent로 지정할 수 없기 때문임.-->
+    <style name="ListHeaderTextViewStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/colorListHeader</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">3dip</item>
+        <item name="android:background">@drawable/list_section_divider_holo_dark</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
+    </style>
+
+    <attr name="min" format="integer" />
+    <attr name="max" format="integer" />
+    <declare-styleable name="NumberPickerPreference">
+        <attr name="min" />
+        <attr name="max" />
+        <attr name="format" format="string"/>
+    </declare-styleable>
+    <declare-styleable name="SeekBarPreference">
+        <attr name="max" />
+    </declare-styleable>
+    <declare-styleable name="Theme">
+        <attr format="reference" name="numberPickerPreferenceStyle"/>
+        <attr format="reference" name="seekBarPreferenceStyle"/>
+    </declare-styleable>
+    <style name="Preference.DialogPreference.EditTextPreference.NumberPickerPreference">
+        <item name="min">0</item>
+        <item name="max">0</item>
+        <item name="format">%d</item>
+    </style>
+    <style name="PreferenceThemeOverlay">
+        <item name="preferenceScreenStyle">@style/Preference.PreferenceScreen</item>
+        <item name="preferenceFragmentStyle">@style/PreferenceFragment</item>
+        <item name="preferenceCategoryStyle">@style/Preference.Category</item>
+        <item name="preferenceStyle">@style/Preference</item>
+        <item name="preferenceInformationStyle">@style/Preference.Information</item>
+        <item name="checkBoxPreferenceStyle">@style/Preference.CheckBoxPreference</item>
+        <item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat</item>
+        <item name="dialogPreferenceStyle">@style/Preference.DialogPreference</item>
+        <item name="editTextPreferenceStyle">@style/Preference.DialogPreference.EditTextPreference</item>
+        <item name="preferenceFragmentListStyle">@style/PreferenceFragmentList</item>
+    </style>
+
+    <style name="AppTheme.Panel" parent="@android:style/Theme.Holo.Dialog">
+        <item name="android:windowTitleStyle">@style/AppTheme.Panel.Title</item>
+        <!--서브메뉴를 표시할 때 애니메이션을 꺼서 좀 더 빨리 표시하게 한다.-->
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:paddingStart">6dip</item>
+        <item name="android:windowAnimationStyle">@style/AppTheme.Animation.Panel</item>
+    </style>
+    <style name="AppTheme.Panel.Title" parent="@android:style/TextAppearance.Holo.DialogWindowTitle">
+
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">23sp</item>
+        <item name="android:paddingStart">10dip</item>
+        <item name="android:textColor">@color/colorListHeader</item>
+        <item name="android:background">@drawable/list_section_divider_holo_dark</item>
+        <item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
+        <item name="android:textAllCaps">true</item>
+
+
+
+    </style>
+    <style name="AppTheme.Animation.Panel" parent="@android:style/Animation.Dialog">
+        <item name="android:windowEnterAnimation">@anim/off</item>
+        <item name="android:windowExitAnimation">@anim/off</item>
+    </style>
+
+
+    <style name="BorderlessButtonStyle" parent="@android:style/Widget.Holo.Button.Borderless">
+    </style>
+</resources>

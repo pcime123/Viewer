@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <PreferenceCategory android:title="@string/category_user">
+
+        <!--<com.sscctv.seeeyesmonitor.SeekBarPreference-->
+        <!--android:key="@string/pref_menu_transparency"-->
+        <!--android:defaultValue="5"-->
+        <!--app:max="10"-->
+        <!--android:layout="@layout/preference_no_summary"-->
+        <!--android:widgetLayout="@layout/preference_widget_seekbar"-->
+        <!--android:title="@string/label_menu_transparency" />-->
+
+        <com.sscctv.seeeyesmonitor.SwitchPreference
+            android:defaultValue="false"
+            android:key="@string/pref_media_folder"
+            android:layout="@layout/preference_no_summary"
+            android:switchTextOff="@string/storage_internal"
+            android:switchTextOn="@string/storage_external"
+            android:title="@string/label_media_folder"
+            android:widgetLayout="@layout/preference_widget_switch" />
+
+        <!--<com.sscctv.seeeyesmonitor.SwitchPreference
+            android:key="@string/pref_touch_lock"
+            android:defaultValue="false"
+            android:layout="@layout/preference_no_summary"
+            android:widgetLayout="@layout/preference_widget_switch"
+            android:title="@string/label_touch_lock"
+            android:switchTextOn="@string/state_on"
+            android:switchTextOff="@string/state_off" />-->
+
+
+        <!--<com.sscctv.seeeyesmonitor.SwitchPreference-->
+            <!--android:defaultValue="true"-->
+            <!--android:key="@string/pref_recording_resolution"-->
+            <!--android:layout="@layout/preference_no_summary"-->
+            <!--android:switchTextOff="@string/recording_1"-->
+            <!--android:switchTextOn="@string/recording_2"-->
+            <!--android:title="@string/label_recording_resolution"-->
+            <!--android:widgetLayout="@layout/preference_widget_switch" />-->
+
+        <com.sscctv.seeeyesmonitor.SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/pref_level_meter"
+            android:layout="@layout/preference_no_summary"
+            android:switchTextOff="@string/state_off"
+            android:switchTextOn="@string/state_on"
+            android:title="@string/label_level_meter"
+            android:widgetLayout="@layout/preference_widget_switch" />
+
+        <!--<com.sscctv.seeeyesmonitor.SwitchPreference-->
+            <!--android:key="@string/pref_view_change"-->
+            <!--android:defaultValue="true"-->
+            <!--android:layout="@layout/preference_no_summary"-->
+            <!--android:widgetLayout="@layout/preference_widget_switch"-->
+            <!--android:title="@string/pref_view_change"-->
+            <!--android:switchTextOn="16:10"-->
+            <!--android:switchTextOff="4:3" />-->
+
+    </PreferenceCategory>
+
+
+
+</PreferenceScreen>

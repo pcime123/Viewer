@@ -1,0 +1,12 @@
+<android.support.v7.widget.RecyclerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/list"
+    style="?attr/preferenceFragmentListStyle"
+    android:layout_width="@dimen/sub_menu_width"
+    android:layout_height="match_parent"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp"
+    android:clipToPadding="false"
+    android:descendantFocusability="afterDescendants"
+    tools:context="com.sscctv.seeeyesmonitor.SettingsFragment" />

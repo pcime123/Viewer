@@ -1,0 +1,132 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:descendantFocusability="afterDescendants"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    tools:context=".PtzOverlayFragment">
+
+    <LinearLayout
+        android:id="@+id/ptz_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorMenuBackground"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/ptz_label_padding"
+        android:paddingLeft="@dimen/ptz_title_padding"
+        android:paddingRight="@dimen/ptz_title_padding"
+        android:paddingTop="@dimen/ptz_label_padding">
+
+        <TextView
+            android:id="@+id/label_mode"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_mode"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/label_protocol"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_protocol"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/label_address"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_address"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/label_baudrate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_baudrate"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/ptz_test"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ptz_title"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="@dimen/ptz_settings_margin"
+        android:layout_marginRight="@dimen/ptz_settings_margin"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/rounded_header_2"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/ptz_label_padding"
+        android:paddingLeft="@dimen/ptz_settings_padding"
+        android:paddingRight="@dimen/ptz_settings_padding"
+        android:paddingTop="@dimen/ptz_label_padding">
+
+        <TextView
+            android:id="@+id/value_mode"
+            android:layout_width="157dp"
+            android:layout_height="wrap_content"
+          android:textSize="@dimen/text_size"
+            android:textColor="@color/WhiteSmoke"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/value_protocol"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="70dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/value_address"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="40dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/value_baudrate"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="95dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ptz_contents"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ptz_controls"
+        android:layout_below="@+id/ptz_test"
+        android:layout_marginLeft="@dimen/ptz_contents_margin"
+        android:layout_marginRight="@dimen/ptz_contents_margin"
+        android:orientation="vertical" />
+
+    <RelativeLayout
+        android:id="@+id/ptz_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/colorMenuBackground">
+
+    </RelativeLayout>
+</RelativeLayout>

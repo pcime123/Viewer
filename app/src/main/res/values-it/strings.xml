@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Spettatore</string>
+
+    <string name="nav_drawer_open">Apri menu</string>
+    <string name="nav_drawer_close">Chiudi menu</string>
+
+    <string name="action_settings">Impostaz...</string>
+
+    <string name="no_signal">Nessun segnale</string>
+
+    <string name="level_good">Buono</string>
+    <string name="level_ng">NG</string>
+    <string name="level_normal">Normale</string>
+
+    <string name="menu_ptz">PTZ</string>
+    <string name="menu_record">Registra...</string>
+    <string name="menu_snapshot">Instanta...</string>
+    <string name="menu_play">Riproduz...</string>
+    <string name="menu_poc">PoC</string>
+    <string name="menu_settings">Impostaz...</string>
+
+    <string name="category_ptz">Impostazioni PTZ</string>
+    <string name="category_ptz_utc">Impostazioni PTZ/UTC</string>
+
+    <string name="category_user">Impostazioni Utente</string>
+
+    <string name="ptz_mode_tx">RS-485TX</string>
+    <string name="ptz_mode_rx">RS-485RX</string>
+    <string name="ptz_mode_analyze">Analisi</string>
+    <string name="ptz_mode_utc">UTC</string>
+
+    <string name="label_mode">Modalità</string>
+    <string name="label_protocol">Protocollo</string>
+    <string name="label_address">Indirizzo</string>
+    <string name="label_baudrate">Velocità di trasmissione</string>
+    <string name="label_termination">Fine</string>
+    <string name="label_media_folder">Cartella di archiviazione</string>
+    <string name="label_menu_transparency">Trasparenza menu</string>
+    <string name="label_level_meter">Misuratore di livello</string>
+    <string name="label_touch_lock">Blocco schermo</string>
+    <string name="label_addr">Addr</string>
+
+    <string name="label_command">&#160;Cmd.</string>
+    <string name="label_packet">Pacchetto</string>
+
+    <string name="key_tilt">TILT</string>
+    <string name="key_pan">PAN</string>
+    <string name="key_zoom">ZOOM</string>
+    <string name="key_focus">FOCUS</string>
+    <string name="key_updown">UP/DN</string>
+    <string name="key_leftright">LT/RT</string>
+
+    <string name="key_pantilt">PT</string>
+    <string name="key_zoomfocus">ZF</string>
+    <string name="key_ptz">PTZ</string>
+    <string name="key_osd">OSD</string>
+    <string name="key_enter">accedere</string>
+    <string name="key_clear">Elimina</string>
+    <string name="key_prev">BACK</string>
+
+    <string name="msg_recording_started">Mi dispiace. La registrazione non è supportata.</string>
+    <string name="msg_recording_stopped">Registrazione completata</string>
+    <string name="msg_snapshot_complete">Lo schermo è stato salvato</string>
+    <string name="msg_video_input_not_found">Non è stato trovato il dispositivo di input video</string>
+    <string name="msg_no_signal_to_capture">Non è possibile salvare nessun segnale in ingresso</string>
+    <string name="msg_starting_poc_check">Avviare la connessione di controllo</string>
+    <string name="msg_enable_poc_power">Potenza in uscita</string>
+
+    <string name="recording_time">Tempo REC</string>
+
+    <string name="state_on">ON</string>
+    <string name="state_off">OFF</string>
+
+    <string name="storage_internal">Interna</string>
+    <string name="storage_external">Esterno</string>
+
+    <string name="poc_state_stb_check">CONTROLLO STB</string>
+    <string name="poc_state_power_off">STANDBY</string>
+    <string name="poc_state_power_on">ACCENSIONE</string>
+    <string name="poc_state_power_break">POTENZA INTERROTTA</string>
+    <string name="poc_state_power_check">CONTROLLO POTENZA</string>
+    <string name="poc_state_link_check">CONTROLLO CONNESSIONE</string>
+    <string name="poc_state_link_ok">CONNESSIONE OK</string>
+    <string name="poc_state_cable_open">CAVO APERTO</string>
+    <string name="poc_state_short">SHORT!!!</string>
+    <string name="poc_state_over_current">TROPPA CORRENTE</string>
+    <string name="poc_state_cable_none">NESSUN CAVO</string>
+
+    <string name="yes">Si</string>
+    <string name="no">No</string>
+    <string name="key_esc">indietro</string>
+    <string name="storage_folder">REC/PIC</string>
+    <string name="key_exit">Uscita</string>
+    <string name="msg_storage_space">Spazio di memoria insufficiente</string>
+    <string name="close">Vicino</string>
+    <string name="poc_not_support">La funzione POC non è supportata</string>
+    <string name="msg_not_support_recording">Scusate. La registrazione non è supportata.</string>
+    <string name="pref_view_change">Proporzioni</string>
+    <string name="please_wait">Attendere prego…</string>
+    <string name="please_wait_main">Caricamento in corso…</string>
+    <string name="label_recording_resolution">Risoluzione di registrazione</string>
+    <string name="storage">Conservazione :</string>
+    <string name="poc_pse_support">PoE is operating. Please try after ending PoE.</string>
+    <string name="maxSize">Recording files can be generated up to 3G, and recording is ended.</string>
+    <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
+
+</resources>

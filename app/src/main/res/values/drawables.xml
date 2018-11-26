@@ -1,0 +1,10 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <array name="menu_icons">
+        <item>@drawable/ic_menu_ptz</item>
+        <item>@drawable/ic_menu_record</item>
+        <item>@drawable/ic_menu_snapshot</item>
+        <item>@drawable/ic_menu_play</item>
+        <item>@drawable/ic_menu_poc</item>
+        <item>@drawable/ic_menu_settings</item>
+    </array>
+</resources>

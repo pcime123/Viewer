@@ -1,0 +1,89 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PocOverlayFragment">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="@color/colorOverlayBackground"
+        android:layout_marginTop="@dimen/overlay_vertical_margin"
+        android:padding="@dimen/overlay_padding_small"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentStart="false"
+        android:baselineAligned="false"
+        android:touchscreenBlocksFocus="false"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignWithParentIfMissing="false">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/poc_label" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/poc_state"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="280dp"
+        android:layout_height="120dp"
+        android:layout_centerInParent="true"
+        android:background="@color/colorOverlayBackground"
+        android:id="@+id/poc_dialog"
+        android:visibility="invisible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/poc_message"
+            android:layout_centerHorizontal="true"
+            android:layout_above="@+id/button_bar"
+            android:gravity="center" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?android:attr/buttonBarStyle"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/button_bar">
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/yes"
+                android:id="@+id/yes"
+                style="?android:attr/buttonBarButtonStyle"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_weight="1"
+                android:focusable="true"
+                android:focusableInTouchMode="true"/>
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/no"
+                android:text="@string/no"
+                style="?android:attr/buttonBarButtonStyle"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>

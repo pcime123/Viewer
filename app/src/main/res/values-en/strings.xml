@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Viewer</string>
+
+    <string name="nav_drawer_open">Open menu</string>
+    <string name="nav_drawer_close">Close menu</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="no_signal">No signal</string>
+
+    <string name="level_good">Good</string>
+    <string name="level_ng">NG</string>
+    <string name="level_normal">Normal</string>
+
+    <string name="menu_ptz">PTZ</string>
+    <string name="menu_record">Record</string>
+    <string name="menu_snapshot">Capture</string>
+    <string name="menu_play">Playback</string>
+    <string name="menu_poc">PoC</string>
+    <string name="menu_settings">Settings</string>
+
+    <string name="category_ptz">PTZ Settings</string>
+    <string name="category_ptz_utc">PTZ/UTC Settings</string>
+
+    <string name="category_user">User Settings</string>
+
+    <string name="ptz_mode_tx">RS-485 TX</string>
+    <string name="ptz_mode_rx">RS-485 RX</string>
+    <string name="ptz_mode_analyze">Analyze</string>
+    <string name="ptz_mode_utc">UTC</string>
+
+    <string name="label_mode">Mode</string>
+    <string name="label_protocol">Protocol</string>
+    <string name="label_address">Address</string>
+    <string name="label_baudrate">Baudrate</string>
+    <string name="label_termination">Termination</string>
+    <string name="label_media_folder">Storage Folder</string>
+    <string name="label_menu_transparency">Menu Transparency</string>
+    <string name="label_level_meter">Level Meter</string>
+    <string name="label_touch_lock">Lock Touchscreen</string>
+    <string name="label_addr">Addr</string>
+
+    <string name="label_command">&#160;Cmd.</string>
+    <string name="label_packet">Packet</string>
+
+    <string name="key_tilt">TILT</string>
+    <string name="key_pan">PAN</string>
+    <string name="key_zoom">ZOOM</string>
+    <string name="key_focus">FOCUS</string>
+    <string name="key_updown">UP/DN</string>
+    <string name="key_leftright">LT/RT</string>
+
+    <string name="key_pantilt">PT</string>
+    <string name="key_zoomfocus">ZF</string>
+    <string name="key_ptz">PTZ</string>
+    <string name="key_osd">OSD</string>
+    <string name="key_enter">ENTER</string>
+    <string name="key_clear">DELETE</string>
+    <string name="key_prev">BACK</string>
+
+    <string name="msg_recording_started">Recording started</string>
+    <string name="msg_recording_stopped">Recording completed</string>
+    <string name="msg_snapshot_complete">The screen has been saved</string>
+    <string name="msg_video_input_not_found">Video input device was not found</string>
+    <string name="msg_no_signal_to_capture">No input signal can be saved</string>
+    <string name="msg_starting_poc_check">Start checking connection</string>
+    <string name="msg_enable_poc_power">Power output</string>
+
+    <string name="recording_time">Recording Time</string>
+
+    <string name="state_on">ON</string>
+    <string name="state_off">OFF</string>
+
+    <string name="storage_internal">Internal</string>
+    <string name="storage_external">External</string>
+
+    <string name="poc_state_stb_check">STB CHECK</string>
+    <string name="poc_state_power_off">STANDBY</string>
+    <string name="poc_state_power_on">POWER ON</string>
+    <string name="poc_state_power_break">POWER BREAK</string>
+    <string name="poc_state_power_check">Operation</string>
+    <string name="poc_state_link_check">LINK CHECK</string>
+    <string name="poc_state_link_ok">LINK OK</string>
+    <string name="poc_state_cable_open">CABLE OPEN</string>
+    <string name="poc_state_short">SHORT!!!</string>
+    <string name="poc_state_over_current">CURRENT OVER</string>
+    <string name="poc_state_cable_none">CABLE NONE</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="key_esc">BACK</string>
+    <string name="storage_folder">REC/PIC</string>
+    <string name="key_exit">EXIT</string>
+    <string name="msg_storage_space">Not enough storage space</string>
+    <string name="close">Close</string>
+    <string name="poc_not_support">POC function is not supported</string>
+    <string name="msg_not_support_recording">I\'m sorry. Recording is not supported resolution.</string>
+    <string name="pref_view_change">Aspect ratio</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="please_wait_main">Loading...</string>
+    <string name="label_recording_resolution">Recording resolution</string>
+    <string name="storage">Storage :</string>
+    <string name="poc_pse_support">PoE is operating. Please try after ending PoE.</string>
+    <string name="maxSize">Recording files can be generated up to 3G, and recording is ended.</string>
+    <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
+
+</resources>

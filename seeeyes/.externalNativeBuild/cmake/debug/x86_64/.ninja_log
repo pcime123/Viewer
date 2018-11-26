@@ -1,0 +1,10 @@
+# ninja log v5
+18	243	0	CMakeFiles/seeeyes-lib.dir/src/main/jni/SpiPort.c.o	ff8b4dbbb9c9d664
+8	253	0	CMakeFiles/seeeyes-lib.dir/src/main/jni/display_out.cpp.o	b24bf94345bbf12d
+4	254	0	CMakeFiles/seeeyes-lib.dir/src/main/jni/seeeyes-jni.cpp.o	e643af4e838eaff9
+6	255	0	CMakeFiles/seeeyes-lib.dir/src/main/jni/sysfs_util.cpp.o	ce371290ef7c6ef0
+1	256	0	CMakeFiles/seeeyes-lib.dir/src/main/jni/SerialPort.c.o	59f8df626060bd28
+13	257	0	CMakeFiles/seeeyes-lib.dir/src/main/jni/utc_device.cpp.o	4138d6e0ae29cf40
+15	298	0	CMakeFiles/seeeyes-lib.dir/src/main/jni/ptz_analyze.cpp.o	b93486b8005bf61c
+10	321	0	CMakeFiles/seeeyes-lib.dir/src/main/jni/ptz_protocol.cpp.o	3accbf2e44ea2637
+321	537	0	../../../../build/intermediates/cmake/debug/obj/x86_64/libseeeyes-lib.so	99ce45289e2e72e3

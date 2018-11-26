@@ -1,0 +1,948 @@
+<resources>
+    <string name="app_name">Viewer</string>
+
+    <string name="nav_drawer_open">Open menu</string>
+    <string name="nav_drawer_close">Close menu</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="no_signal">No signal</string>
+
+    <string name="sdi_exhd" translatable="false">HD/EX</string>
+    <string name="sdi_3g" translatable="false">3G</string>
+
+    <string name="signal_level" formatted="false" translatable="false">S.LVL : 000%</string>
+    <string name="a_level" formatted="false" translatable="false">A.LVL : 000%</string>
+    <string name="f_level" formatted="false" translatable="false">F.LVL : 000%</string>
+    <string name="focus_level" translatable="false">FOCUS : 000/000</string>
+
+    <string name="level_good">Good</string>
+    <string name="level_normal">Normal</string>
+    <string name="level_ng">NG</string>
+
+    <string name="menu_ptz">PTZ</string>
+    <string name="menu_record">Record</string>
+    <string name="menu_snapshot">Snapshot</string>
+    <string name="menu_play">Playback</string>
+    <string name="menu_poc">PoC</string>
+    <string name="menu_settings">Settings</string>
+
+    <string-array name="menu_titles">
+        <item>@string/menu_ptz</item>
+        <item>@string/menu_record</item>
+        <item>@string/menu_snapshot</item>
+        <item>@string/menu_play</item>
+        <item>@string/menu_poc</item>
+        <item>@string/menu_settings</item>
+    </string-array>
+
+    <string name="category_ptz">PTZ Settings</string>
+    <string name="category_ptz_utc">PTZ/UTC Settings</string>
+    <string name="pref_ptz_mode_sdi" translatable="false">ptz_mode_sdi</string>
+    <string name="pref_ptz_mode_utc" translatable="false">ptz_mode_utc</string>
+    <string name="pref_ptz_protocol" translatable="false">ptz_protocol</string>
+    <string name="pref_utc_protocol_cvbs" translatable="false">utc_protocol_cvbs</string>
+    <string name="pref_utc_protocol_tvi" translatable="false">utc_protocol_tvi</string>
+    <string name="pref_utc_protocol_cvi" translatable="false">utc_protocol_cvi</string>
+    <string name="pref_utc_protocol_ahd" translatable="false">utc_protocol_ahd</string>
+    <string name="pref_ptz_address" translatable="false">ptz_address</string>
+    <string name="pref_ptz_baudrate" translatable="false">ptz_baudrate</string>
+    <string name="pref_ptz_termination" translatable="false">ptz_termination</string>
+
+    <string name="ptz_address_format" translatable="false">%03d</string>
+
+    <string name="category_user">User Settings</string>
+    <string name="pref_media_folder" translatable="false">pref_media_folder</string>
+    <string name="pref_menu_transparency" translatable="false">pref_menu_transparency</string>
+    <string name="pref_touch_lock" translatable="false">pref_touch_lock</string>
+    <string name="pref_level_meter" translatable="false">pref_level_meter</string>
+
+    <string name="pref_sdi_mode" translatable="false">pref_sdi_mode</string>
+
+    <string name="ptz_mode_tx">RS-485 TX</string>
+    <string name="ptz_mode_rx">RS-485 RX</string>
+    <string name="ptz_mode_analyze">Analyze</string>
+    <string name="ptz_mode_utc">UTC</string>
+    <string name="ptz_mode_ucc" translatable="false">UCC</string>
+
+    <string-array name="ptz_modes_sdi">
+        <item>@string/ptz_mode_tx</item>
+        <item>@string/ptz_mode_rx</item>
+        <item>@string/ptz_mode_analyze</item>
+        <item>@string/ptz_mode_ucc</item>
+    </string-array>
+    <string-array name="ptz_mode_values_sdi" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="ptz_modes_utc">
+        <item>@string/ptz_mode_tx</item>
+        <item>@string/ptz_mode_rx</item>
+        <item>@string/ptz_mode_analyze</item>
+        <item>@string/ptz_mode_utc</item>
+    </string-array>
+    <string-array name="ptz_mode_values_utc" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <!--ptz_protocol.c의 Protocol_Name_Str과 동일해야 함-->
+    <string-array name="ptz_protocols" translatable="false">
+        <!--0-->
+        <item>D-MAX</item>
+        <item>DY-255RXC</item>
+        <item>FineSystem</item>
+        <item>Fastrax II</item>
+        <item>Honeywell</item>
+        <!--5-->
+        <item>VRX-2201</item>
+        <item>LG MultiX</item>
+        <item>LG LPTA100</item>
+        <item>Panasonic Conv</item>
+        <item>Panasonic New</item>
+        <!--10-->
+        <item>Pelco-D</item>
+        <item>Pelco-P</item>
+        <item>Samsung Elec.</item>
+        <item>Samsung Techwin</item>
+        <item>Sungjin SJ100</item>
+        <!--15-->
+        <item>Sungjin SJ1000</item>
+        <item>Sysmania</item>
+        <item>Vicon Standard</item>
+        <item>Vicon Extend</item>
+        <item>Ikegami PCS35</item>
+        <!--20-->
+        <item>Ikegami PCS358</item>
+        <item>NEWBORN</item>
+        <item>TOKINA DMP</item>
+        <item>ERNA</item>
+        <item>Bosch OSRD</item>
+        <!--25-->
+        <item>Bosch BiCom</item>
+        <item>CYBER SCAN1</item>
+        <item>Yujin System</item>
+        <item>Dynacolor DSCP</item>
+        <item>Ladon</item>
+        <!--30-->
+        <item>MCU-1200N</item>
+        <item>AD SpeedDome</item>
+        <item>VCLTP</item>
+        <item>LILIN MLP2</item>
+        <item>LILIN Fast</item>
+        <!--35-->
+        <item>Pelco-CNB1</item>
+        <item>Pelco-CNB2</item>
+        <item>NUVICO</item>
+        <item>SONY VISCA</item>
+        <item>LG KPC-Z18</item>
+        <!--40-->
+        <item>CNB ZxN-20</item>
+        <!--<item>Heijmans</item>-->
+        <!--<item>DODAAM</item>-->
+    </string-array>
+    <!--ptz_protocol.h의 enum과 동일해야 함-->
+    <string-array name="ptz_protocol_values" translatable="false">
+        <item>0</item>
+        <!-- Dongyang_Unitech -->
+        <item>1</item>
+        <!-- Dongyang_DY_255RXC -->
+        <item>2</item>
+        <!-- Fine_System -->
+        <item>3</item>
+        <!-- Hitron_HID_2404 -->
+        <item>4</item>
+        <!-- Honeywell_ScanDome2 -->
+
+        <item>5</item>
+        <!-- InterM_VRx_2201 -->
+        <item>6</item>
+        <!-- LG_MultiX -->
+        <item>7</item>
+        <!-- LG_LPT_A100L -->
+        <item>8</item>
+        <!-- Panasonic_C -->
+        <item>9</item>
+        <!-- Panasonic_N -->
+
+        <item>10</item>
+        <!-- Pelco_D -->
+        <item>11</item>
+        <!-- Pelco_P -->
+        <item>12</item>
+        <!-- Samsung -->
+        <item>13</item>
+        <!-- Samsung_Techwin -->
+        <item>14</item>
+        <!-- Sungjin_SJ_100 -->
+
+        <item>15</item>
+        <!-- Sungjin_SJ_1000 -->
+        <item>16</item>
+        <!-- Sysmania -->
+        <item>17</item>
+        <!-- Vicon_Stn -->
+        <item>18</item>
+        <!-- Vicon_Ext -->
+        <item>19</item>
+        <!-- Ikegami_PCS_35 -->
+
+        <item>20</item>
+        <!-- Ikegami_PCS_358 -->
+        <item>21</item>
+        <!-- New_Born_Hightech // NIKO Korea -->
+        <item>22</item>
+        <!-- TOKINA_DMP -->
+        <item>23</item>
+        <!-- Ernitec -->
+        <item>24</item>
+        <!-- Bosch_OSRD -->
+
+        <item>25</item>
+        <!-- Bosch_BiCom -->
+        <item>26</item>
+        <!-- Cyber_Scan1 -->
+        <item>27</item>
+        <!-- Yujin_System -->
+        <item>28</item>
+        <!-- Dynacolor_DSCP -->
+        <item>29</item>
+        <!-- Ladon -->
+
+        <item>30</item>
+        <!-- MCU_1200N -->
+        <item>31</item>
+        <!-- AD_SpeedDome -->
+        <item>32</item>
+        <!-- VCLTP -->
+        <item>33</item>
+        <!-- LILIN_MLP2 -->
+        <item>34</item>
+        <!-- LILIN_FastDome -->
+
+        <item>35</item>
+        <!-- Pelco_D_CNB1 -->
+        <item>36</item>
+        <!-- Pelco_D_CNB2 -->
+        <item>37</item>
+        <!-- NUVICO -->
+        <item>38</item>
+        <!-- SONY_VISCA -->
+        <item>39</item>
+        <!-- LG_KPC_Z180 -->
+
+        <item>40</item>
+        <!-- CNB_ZxN_20 -->
+        <!--<item>41</item>-->
+        <!-- // Heijmans -->
+        <!--<item>42</item>-->
+        <!-- // DoDAMM -->
+    </string-array>
+
+    <string-array name="utc_protocols_cvbs" translatable="false">
+        <!--COAX-->
+        <item>PELCO-C</item>
+        <item>A1-CCVC</item>
+    </string-array>
+    <string-array name="utc_protocol_values_cvbs" translatable="false">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string-array name="utc_protocols_tvi" translatable="false">
+        <item>TVI UTC1</item>
+        <item>TVI UTC2</item>
+        <item>TVI UTC3</item>
+    </string-array>
+    <string-array name="utc_protocol_values_tvi" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="utc_protocols_ahd" translatable="false">
+        <item>A-CP</item>
+    </string-array>
+    <string-array name="utc_protocol_values_ahd" translatable="false">
+        <item>0</item>
+    </string-array>
+
+    <string-array name="utc_protocols_cvi" translatable="false">
+        <item>CVI UTC1</item>
+        <item>CVI UTC2</item>
+        <item>CVI UTC3</item>
+    </string-array>
+    <string-array name="utc_protocol_values_cvi" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string name="utc_protocol_ahd" translatable="false">A-CP</string>
+
+    <string-array name="ptz_baudrates" translatable="false">
+        <item>2400</item>
+        <item>4800</item>
+        <item>9600</item>
+        <item>19200</item>
+    </string-array>
+    <string-array name="ptz_baudrate_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="ptz_address" translatable="false">
+        <item>Address 001~255</item>
+        <item>001</item>
+        <item>002</item>
+        <item>003</item>
+        <item>004</item>
+        <item>005</item>
+        <item>006</item>
+        <item>007</item>
+        <item>008</item>
+        <item>009</item>
+        <item>010</item>
+        <item>011</item>
+        <item>012</item>
+        <item>013</item>
+        <item>014</item>
+        <item>015</item>
+        <item>016</item>
+        <item>017</item>
+        <item>018</item>
+        <item>019</item>
+        <item>020</item>
+        <item>021</item>
+        <item>022</item>
+        <item>023</item>
+        <item>024</item>
+        <item>025</item>
+        <item>026</item>
+        <item>027</item>
+        <item>028</item>
+        <item>029</item>
+        <item>030</item>
+        <item>031</item>
+        <item>032</item>
+        <item>033</item>
+        <item>034</item>
+        <item>035</item>
+        <item>036</item>
+        <item>037</item>
+        <item>038</item>
+        <item>039</item>
+        <item>040</item>
+        <item>041</item>
+        <item>042</item>
+        <item>043</item>
+        <item>044</item>
+        <item>045</item>
+        <item>046</item>
+        <item>047</item>
+        <item>048</item>
+        <item>049</item>
+        <item>050</item>
+        <item>051</item>
+        <item>052</item>
+        <item>053</item>
+        <item>054</item>
+        <item>055</item>
+        <item>056</item>
+        <item>057</item>
+        <item>058</item>
+        <item>059</item>
+        <item>060</item>
+        <item>061</item>
+        <item>062</item>
+        <item>063</item>
+        <item>064</item>
+        <item>065</item>
+        <item>066</item>
+        <item>067</item>
+        <item>068</item>
+        <item>069</item>
+        <item>070</item>
+        <item>071</item>
+        <item>072</item>
+        <item>073</item>
+        <item>074</item>
+        <item>075</item>
+        <item>076</item>
+        <item>077</item>
+        <item>078</item>
+        <item>079</item>
+        <item>080</item>
+        <item>081</item>
+        <item>082</item>
+        <item>083</item>
+        <item>084</item>
+        <item>085</item>
+        <item>086</item>
+        <item>087</item>
+        <item>088</item>
+        <item>089</item>
+        <item>090</item>
+        <item>091</item>
+        <item>092</item>
+        <item>093</item>
+        <item>094</item>
+        <item>095</item>
+        <item>096</item>
+        <item>097</item>
+        <item>098</item>
+        <item>099</item>
+        <item>100</item>
+        <item>101</item>
+        <item>102</item>
+        <item>103</item>
+        <item>104</item>
+        <item>105</item>
+        <item>106</item>
+        <item>107</item>
+        <item>108</item>
+        <item>109</item>
+        <item>110</item>
+        <item>111</item>
+        <item>112</item>
+        <item>113</item>
+        <item>114</item>
+        <item>115</item>
+        <item>116</item>
+        <item>117</item>
+        <item>118</item>
+        <item>119</item>
+        <item>120</item>
+        <item>121</item>
+        <item>122</item>
+        <item>123</item>
+        <item>124</item>
+        <item>125</item>
+        <item>126</item>
+        <item>127</item>
+        <item>128</item>
+        <item>129</item>
+        <item>130</item>
+        <item>131</item>
+        <item>132</item>
+        <item>133</item>
+        <item>134</item>
+        <item>135</item>
+        <item>136</item>
+        <item>137</item>
+        <item>138</item>
+        <item>139</item>
+        <item>140</item>
+        <item>141</item>
+        <item>142</item>
+        <item>143</item>
+        <item>144</item>
+        <item>145</item>
+        <item>146</item>
+        <item>147</item>
+        <item>148</item>
+        <item>149</item>
+        <item>150</item>
+        <item>151</item>
+        <item>152</item>
+        <item>153</item>
+        <item>154</item>
+        <item>155</item>
+        <item>156</item>
+        <item>157</item>
+        <item>158</item>
+        <item>159</item>
+        <item>160</item>
+        <item>161</item>
+        <item>162</item>
+        <item>163</item>
+        <item>164</item>
+        <item>165</item>
+        <item>166</item>
+        <item>167</item>
+        <item>168</item>
+        <item>169</item>
+        <item>170</item>
+        <item>171</item>
+        <item>172</item>
+        <item>173</item>
+        <item>174</item>
+        <item>175</item>
+        <item>176</item>
+        <item>177</item>
+        <item>178</item>
+        <item>179</item>
+        <item>180</item>
+        <item>181</item>
+        <item>182</item>
+        <item>183</item>
+        <item>184</item>
+        <item>185</item>
+        <item>186</item>
+        <item>187</item>
+        <item>188</item>
+        <item>189</item>
+        <item>190</item>
+        <item>191</item>
+        <item>192</item>
+        <item>193</item>
+        <item>194</item>
+        <item>195</item>
+        <item>196</item>
+        <item>197</item>
+        <item>198</item>
+        <item>199</item>
+        <item>200</item>
+        <item>201</item>
+        <item>202</item>
+        <item>203</item>
+        <item>204</item>
+        <item>205</item>
+        <item>206</item>
+        <item>207</item>
+        <item>208</item>
+        <item>209</item>
+        <item>210</item>
+        <item>211</item>
+        <item>212</item>
+        <item>213</item>
+        <item>214</item>
+        <item>215</item>
+        <item>216</item>
+        <item>217</item>
+        <item>218</item>
+        <item>219</item>
+        <item>220</item>
+        <item>221</item>
+        <item>222</item>
+        <item>223</item>
+        <item>224</item>
+        <item>225</item>
+        <item>226</item>
+        <item>227</item>
+        <item>228</item>
+        <item>229</item>
+        <item>230</item>
+        <item>231</item>
+        <item>232</item>
+        <item>233</item>
+        <item>234</item>
+        <item>235</item>
+        <item>236</item>
+        <item>237</item>
+        <item>238</item>
+        <item>239</item>
+        <item>240</item>
+        <item>241</item>
+        <item>242</item>
+        <item>243</item>
+        <item>244</item>
+        <item>245</item>
+        <item>246</item>
+        <item>247</item>
+        <item>248</item>
+        <item>249</item>
+        <item>250</item>
+        <item>251</item>
+        <item>252</item>
+        <item>253</item>
+        <item>254</item>
+        <item>255</item>
+
+    </string-array>
+
+    <string-array name="ptz_address_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+        <item>29</item>
+        <item>30</item>
+        <item>31</item>
+        <item>32</item>
+        <item>33</item>
+        <item>34</item>
+        <item>35</item>
+        <item>36</item>
+        <item>37</item>
+        <item>38</item>
+        <item>39</item>
+        <item>40</item>
+        <item>41</item>
+        <item>42</item>
+        <item>43</item>
+        <item>44</item>
+        <item>45</item>
+        <item>46</item>
+        <item>47</item>
+        <item>48</item>
+        <item>49</item>
+        <item>50</item>
+        <item>51</item>
+        <item>52</item>
+        <item>53</item>
+        <item>54</item>
+        <item>55</item>
+        <item>56</item>
+        <item>57</item>
+        <item>58</item>
+        <item>59</item>
+        <item>60</item>
+        <item>61</item>
+        <item>62</item>
+        <item>63</item>
+        <item>64</item>
+        <item>65</item>
+        <item>66</item>
+        <item>67</item>
+        <item>68</item>
+        <item>69</item>
+        <item>70</item>
+        <item>71</item>
+        <item>72</item>
+        <item>73</item>
+        <item>74</item>
+        <item>75</item>
+        <item>76</item>
+        <item>77</item>
+        <item>78</item>
+        <item>79</item>
+        <item>80</item>
+        <item>81</item>
+        <item>82</item>
+        <item>83</item>
+        <item>84</item>
+        <item>85</item>
+        <item>86</item>
+        <item>87</item>
+        <item>88</item>
+        <item>89</item>
+        <item>90</item>
+        <item>91</item>
+        <item>92</item>
+        <item>93</item>
+        <item>94</item>
+        <item>95</item>
+        <item>96</item>
+        <item>97</item>
+        <item>98</item>
+        <item>99</item>
+        <item>100</item>
+        <item>101</item>
+        <item>102</item>
+        <item>103</item>
+        <item>104</item>
+        <item>105</item>
+        <item>106</item>
+        <item>107</item>
+        <item>108</item>
+        <item>109</item>
+        <item>110</item>
+        <item>111</item>
+        <item>112</item>
+        <item>113</item>
+        <item>114</item>
+        <item>115</item>
+        <item>116</item>
+        <item>117</item>
+        <item>118</item>
+        <item>119</item>
+        <item>120</item>
+        <item>121</item>
+        <item>122</item>
+        <item>123</item>
+        <item>124</item>
+        <item>125</item>
+        <item>126</item>
+        <item>127</item>
+        <item>128</item>
+        <item>129</item>
+        <item>130</item>
+        <item>131</item>
+        <item>132</item>
+        <item>133</item>
+        <item>134</item>
+        <item>135</item>
+        <item>136</item>
+        <item>137</item>
+        <item>138</item>
+        <item>139</item>
+        <item>140</item>
+        <item>141</item>
+        <item>142</item>
+        <item>143</item>
+        <item>144</item>
+        <item>145</item>
+        <item>146</item>
+        <item>147</item>
+        <item>148</item>
+        <item>149</item>
+        <item>150</item>
+        <item>151</item>
+        <item>152</item>
+        <item>153</item>
+        <item>154</item>
+        <item>155</item>
+        <item>156</item>
+        <item>157</item>
+        <item>158</item>
+        <item>159</item>
+        <item>160</item>
+        <item>161</item>
+        <item>162</item>
+        <item>163</item>
+        <item>164</item>
+        <item>165</item>
+        <item>166</item>
+        <item>167</item>
+        <item>168</item>
+        <item>169</item>
+        <item>170</item>
+        <item>171</item>
+        <item>172</item>
+        <item>173</item>
+        <item>174</item>
+        <item>175</item>
+        <item>176</item>
+        <item>177</item>
+        <item>178</item>
+        <item>179</item>
+        <item>180</item>
+        <item>181</item>
+        <item>182</item>
+        <item>183</item>
+        <item>184</item>
+        <item>185</item>
+        <item>186</item>
+        <item>187</item>
+        <item>188</item>
+        <item>189</item>
+        <item>190</item>
+        <item>191</item>
+        <item>192</item>
+        <item>193</item>
+        <item>194</item>
+        <item>195</item>
+        <item>196</item>
+        <item>197</item>
+        <item>198</item>
+        <item>199</item>
+        <item>200</item>
+        <item>201</item>
+        <item>202</item>
+        <item>203</item>
+        <item>204</item>
+        <item>205</item>
+        <item>206</item>
+        <item>207</item>
+        <item>208</item>
+        <item>209</item>
+        <item>210</item>
+        <item>211</item>
+        <item>212</item>
+        <item>213</item>
+        <item>214</item>
+        <item>215</item>
+        <item>216</item>
+        <item>217</item>
+        <item>218</item>
+        <item>219</item>
+        <item>220</item>
+        <item>221</item>
+        <item>222</item>
+        <item>223</item>
+        <item>224</item>
+        <item>225</item>
+        <item>226</item>
+        <item>227</item>
+        <item>228</item>
+        <item>229</item>
+        <item>230</item>
+        <item>231</item>
+        <item>232</item>
+        <item>233</item>
+        <item>234</item>
+        <item>235</item>
+        <item>236</item>
+        <item>237</item>
+        <item>238</item>
+        <item>239</item>
+        <item>240</item>
+        <item>241</item>
+        <item>242</item>
+        <item>243</item>
+        <item>244</item>
+        <item>245</item>
+        <item>246</item>
+        <item>247</item>
+        <item>248</item>
+        <item>249</item>
+        <item>250</item>
+        <item>251</item>
+        <item>252</item>
+        <item>253</item>
+        <item>254</item>
+
+    </string-array>
+
+    <string name="value_0" translatable="false">0</string>
+    <string name="value_2" translatable="false">2</string>
+    <string name="value_10" translatable="false">10</string>
+
+    <string name="label_mode">Mode</string>
+    <string name="label_protocol">Protocol</string>
+    <string name="label_address">Address</string>
+    <string name="label_baudrate">Baudrate</string>
+    <string name="label_termination">Termination</string>
+    <string name="label_media_folder">Storage Folder</string>
+    <string name="label_menu_transparency">Menu Transparency</string>
+    <string name="label_touch_lock">Lock Touchscreen</string>
+    <string name="label_level_meter">Level Meter</string>
+    <string name="label_addr">Addr</string>
+
+    <string name="label_command">&#160;Cmd.</string>
+    <string name="label_packet">Packet</string>
+
+    <string name="key_tilt">Tilt</string>
+    <string name="key_pan">Pan</string>
+    <string name="key_zoom">ZOOM</string>
+    <string name="key_focus">Focus</string>
+    <string name="key_updown">UP/DN</string>
+    <string name="key_leftright">LT/RT</string>
+    <string name="key_set" translatable="false">SET</string>
+    <string name="key_mode" translatable="false">MODE</string>
+    <string name="key_pantilt">PT</string>
+    <string name="key_zoomfocus">ZF</string>
+    <string name="key_ptz">PTZ</string>
+    <string name="key_osd">OSD</string>
+    <string name="key_enter">Enter</string>
+    <string name="key_esc">ESC</string>
+    <string name="key_clear">Delete</string>
+    <string name="key_exit">EXIT</string>
+    <string name="key_prev">Back</string>
+
+    <string name="msg_recording_started">Recording started</string>
+    <string name="msg_recording_stopped">Recording completed</string>
+    <string name="msg_storage_space">Not enough storage space</string>
+    <string name="msg_snapshot_complete">The screen has been saved</string>
+    <string name="msg_video_input_not_found">Video input device was not found</string>
+    <string name="msg_no_signal_to_capture">No input signal can be saved</string>
+    <string name="msg_not_support_recording">I\'m sorry. Recording is not supported resolution.</string>
+    <string name="msg_starting_poc_check">Start checking connection</string>
+    <string name="msg_enable_poc_power">Power output</string>
+
+    <string name="crc_time" translatable="false">TIME  : 00:00:00</string>
+
+    <string name="recording_time">Recording Time</string>
+    <string name="time_none" translatable="false">--:--:--</string>
+    <string name="time_start" translatable="false">00:00:00</string>
+
+    <string name="state_on">ON</string>
+    <string name="state_off">OFF</string>
+
+    <string name="storage_folder">REC/PIC</string>
+
+    <string name="storage_internal">Internal</string>
+    <string name="storage_external">External</string>
+
+    <string name="poc_label" translatable="false">PoC&#160;&#160;</string>
+
+    <string-array name="poc_states">
+        <item>@string/poc_state_power_off</item>
+        <item>@string/poc_state_stb_check</item>
+        <item>@string/poc_state_link_check</item>
+        <item>@string/poc_state_link_ok</item>
+        <item>@string/poc_state_power_on</item>
+        <item>@string/poc_state_power_break</item>
+        <item>@string/poc_state_power_check</item>
+        <item>@string/poc_state_cable_open</item>
+        <item>@string/poc_state_short</item>
+        <item>@string/poc_state_over_current</item>
+        <item>@string/poc_state_cable_none</item>
+    </string-array>
+
+    <string name="poc_state_power_off">POWER OFF</string>
+    <string name="poc_state_power_on">POWER ON</string>
+    <string name="poc_state_power_break">POWER BREAK</string>
+    <string name="poc_state_power_check">POWER CHECK</string>
+    <string name="poc_state_stb_check">STB CHECK</string>
+    <string name="poc_state_link_check">LINK CHECK</string>
+    <string name="poc_state_link_ok">LINK OK</string>
+    <string name="poc_state_cable_open">CABLE OPEN</string>
+    <string name="poc_state_short">SHORT!!!</string>
+    <string name="poc_state_cable_none">NONE</string>
+    <string name="poc_state_over_current">CURRENT OVER</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string name="plus" translatable="false">+</string>
+    <string name="minus" translatable="false">-</string>
+    <string name="poc_not_support">POC function is not supported</string>
+    <string name="poc_pse_support">PoE is operating. Please try after ending PoE.</string>
+    <string name="close">Close</string>
+    <string name="error_security" translatable="false">You do not have read/write permission to the serial \t\tport.</string>
+    <string name="error_unknown" translatable="false">The serial port can not be opened for an unknown \t\treason.</string>
+    <string name="error_configuration" translatable="false">Please configure your serial port first.</string>
+
+    <string name="error_videoinput" translatable="false">Video Input error</string>
+    <string name="APP_CLOSE_BACK_BUTTON" translatable="false"> APP Close?</string>
+
+    <string name="pref_view_change">pref_view_change</string>
+    <string name="pref_recording_resolution" translatable="false">pref_recording_resolution</string>
+    <string name="recording_1" translatable="false">720p</string>
+    <string name="recording_2" translatable="false">1080p</string>
+    <string name="extsd" translatable="false">Micro SD</string>
+    <string name="usb" translatable="false">USB</string>
+    <string name="label_recording_resolution">Recording resolution</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="please_wait_main">Wait!!</string>
+    <string name="up" translatable="false">UP</string>
+    <string name="down" translatable="false">DOWN</string>
+    <string name="left" translatable="false">LEFT</string>
+    <string name="right" translatable="false">RIGHT</string>
+    <string name="menu" translatable="false">MENU</string>
+    <string name="enter" translatable="false">ENTER</string>
+    <string name="back" translatable="false">BACK</string>
+    <string name="exit" translatable="false">EXIT</string>
+    <string name="near" translatable="false">NEAR</string>
+    <string name="far" translatable="false">FAR</string>
+    <string name="in" translatable="false">IN</string>
+    <string name="out" translatable="false">OUT</string>
+    <string name="storage">Storage : </string>
+    <string name="maxSize">Recording stopped as the recording file can be created up to 3G.</string>
+    <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
+
+</resources>

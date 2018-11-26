@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Anzeige</string>
+
+    <string name="nav_drawer_open">Menü öffnen</string>
+    <string name="nav_drawer_close">Menü schließen</string>
+
+    <string name="action_settings">Einstellu...</string>
+
+    <string name="no_signal">Kein Signal</string>
+
+    <string name="level_good">Gut</string>
+    <string name="level_ng">NG</string>
+    <string name="level_normal">Normal</string>
+
+    <string name="menu_ptz">PTZ</string>
+    <string name="menu_record">Aufzeich...</string>
+    <string name="menu_snapshot">Schnapp...</string>
+    <string name="menu_play">Wiedergabe</string>
+    <string name="menu_poc">PoC</string>
+    <string name="menu_settings">Einstellu...</string>
+
+    <string name="category_ptz">PTZ-Einstellungen</string>
+    <string name="category_ptz_utc">PTZ/UTC-Einstellungen</string>
+
+    <string name="category_user">Benutzereinstellungen</string>
+
+    <string name="ptz_mode_tx">RS-485 TX</string>
+    <string name="ptz_mode_rx">RS-485 RX</string>
+    <string name="ptz_mode_analyze">Analyse</string>
+    <string name="ptz_mode_utc">UTC</string>
+
+    <string name="label_mode">Modus</string>
+    <string name="label_protocol">Protokoll</string>
+    <string name="label_address">Adresse</string>
+    <string name="label_baudrate">Baudrate</string>
+    <string name="label_termination">Abschluss</string>
+    <string name="label_media_folder">Speicherordner</string>
+    <string name="label_menu_transparency">Menü-Transparenz</string>
+    <string name="label_level_meter">Pegelanzeige</string>
+    <string name="label_touch_lock">Touchscreen sperren</string>
+    <string name="label_addr">Addr</string>
+
+    <string name="label_command">&#160;Cmd.</string>
+    <string name="label_packet">Paket</string>
+
+    <string name="key_tilt">Neigen</string>
+    <string name="key_pan">Schwenken</string>
+    <string name="key_zoom">ZOOM</string>
+    <string name="key_focus">Fokus</string>
+    <string name="key_updown">UP/DN</string>
+    <string name="key_leftright">LT/RT</string>
+
+    <string name="key_pantilt">PT</string>
+    <string name="key_zoomfocus">ZF</string>
+    <string name="key_ptz">PTZ</string>
+    <string name="key_osd">OSD</string>
+    <string name="key_enter">Eingeben</string>
+    <string name="key_clear">Löschen</string>
+    <string name="key_prev">BACK</string>
+
+    <string name="msg_recording_started">Es tut mir Leid. Aufzeichnung wird nicht unterstützt.</string>
+    <string name="msg_recording_stopped">Aufnahme abgeschlossen</string>
+    <string name="msg_snapshot_complete">Der Bildschirm wurde gespeichert</string>
+    <string name="msg_video_input_not_found">Videoquelle nicht gefunden</string>
+    <string name="msg_no_signal_to_capture">Es kann kein Eingangssignal gespeichert werden</string>
+    <string name="msg_starting_poc_check">Prüfung der Verbindung gestartet</string>
+    <string name="msg_enable_poc_power">Leistung</string>
+
+    <string name="recording_time">Aufnahme-Zeit</string>
+
+    <string name="state_on">EIN</string>
+    <string name="state_off">AUS</string>
+
+    <string name="storage_internal">Intern</string>
+    <string name="storage_external">Extern</string>
+
+    <string name="poc_state_stb_check">STB-PRÜFUNG</string>
+    <string name="poc_state_power_off">STANDBY</string>
+    <string name="poc_state_power_on">EIN</string>
+    <string name="poc_state_power_break">STROMABBRUCH</string>
+    <string name="poc_state_power_check">STROMPRÜFUNG</string>
+    <string name="poc_state_link_check">LINK PRÜFUNG</string>
+    <string name="poc_state_link_ok">LINK OK</string>
+    <string name="poc_state_cable_open">POC-Funktion wird nicht unterstützt</string>
+    <string name="poc_state_short">KURZ!!!</string>
+    <string name="poc_state_over_current">ÜBERSTROM</string>
+    <string name="poc_state_cable_none">29/5000</string>
+
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+    <string name="key_esc">BACK</string>
+    <string name="storage_folder">REC/PIC</string>
+    <string name="key_exit">EXIT</string>
+    <string name="msg_storage_space">Nicht genügend Stauraum</string>
+    <string name="close">Schließen</string>
+    <string name="poc_not_support">POC-Funktion wird nicht unterstützt</string>
+    <string name="msg_not_support_recording">Es tut uns leid. Die Aufnahme wird nicht unterstützt.</string>
+    <string name="pref_view_change">Seitenverhältnis</string>
+    <string name="please_wait">Warten Sie mal…</string>
+    <string name="please_wait_main">Wird geladen…</string>
+    <string name="label_recording_resolution">Aufnahmeauflösung</string>
+    <string name="storage">Lager :</string>
+    <string name="poc_pse_support">PoE is operating. Please try after ending PoE.</string>
+    <string name="maxSize">Recording files can be generated up to 3G, and recording is ended.</string>
+    <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
+
+</resources>
