@@ -242,8 +242,6 @@ public class McuControl {
     }
 
     public void sendRs485Packet(ByteBuffer packet, int length) throws IOException, InterruptedException {
-//        Log.d(TAG, "packet: " + packet);
-//        Log.d(TAG, "length: " + length);
         byte data;
 
         for (int i = 0; i < length; i++) {

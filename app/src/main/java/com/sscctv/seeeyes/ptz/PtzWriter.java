@@ -1,5 +1,7 @@
 package com.sscctv.seeeyes.ptz;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -56,7 +58,6 @@ public class PtzWriter extends PtzMode {
     @Override
     public void sendCommand(char command) {
 //        Log.d(TAG, "sendCommand(" + (int) command + ")");
-
         try {
             sendCommandImpl(PtzProtocol.controlToCommand(command));
         } catch (IOException | InterruptedException e) {
@@ -67,7 +68,7 @@ public class PtzWriter extends PtzMode {
     private void sendCommandImpl(char command) throws InterruptedException, IOException {
         // 최대 패킷 크기만큼의 버퍼를 할당한다.
         ByteBuffer buffer = ByteBuffer.allocateDirect(PtzProtocol.PACKET_SIZE_MAX);
-//        Log.d(TAG, "sendCommandImpl: " + buffer + " , " + command);
+        Log.d(TAG, "sendCommandImpl: " + buffer + " , " + command);
         // Native에 버퍼와 명령을 알려주면 패킷을 버퍼에 기록하고 길이를 반환한다.
         native_encode_command(buffer, command);
     }
@@ -93,6 +94,7 @@ public class PtzWriter extends PtzMode {
         }
 
         try {
+//            Log.d(TAG, "TEST: " + buffer + " ," + length);
             mControl.sendRs485Packet(buffer, length);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

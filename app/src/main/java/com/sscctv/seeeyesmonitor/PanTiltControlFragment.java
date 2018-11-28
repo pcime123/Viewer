@@ -182,7 +182,7 @@ public class PanTiltControlFragment extends PtzControlFragment {
     public boolean onKeyPress(int keyCode, KeyEvent event) {
         if (mListener == null)
             return false;
-        Log.d(TAG, "onKey="+keyCode + " ," + event);
+//        Log.d(TAG, "onKey="+keyCode + " ," + event);
 
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (keyCode) {

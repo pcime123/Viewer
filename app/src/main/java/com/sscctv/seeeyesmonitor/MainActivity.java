@@ -478,13 +478,12 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
         stopHdmiAudioPlay();
-
+        setAudioMode(AUDIO_MODE_IN_NONE);
 //        try {
 //            mSource.release();			// set gpio pin vp_ctrl, pse_en, adc_sel
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-//
         mVideoInput.stopPreview();
 
         mVideoHandler.post(() -> {
@@ -1555,6 +1554,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         mDrawerList = findViewById(R.id.menu_items);
+
         CharSequence[] menuTitles;
         menuTitles = getResources().getStringArray(R.array.menu_titles);
         mMenuAdaptor = new ArrayAdapter<CharSequence>(this, R.layout.drawer_list_item, menuTitles) {
@@ -3828,10 +3828,11 @@ public class MainActivity extends AppCompatActivity
         if (audioManager != null) {
 //            Log.d(TAG, "Set AudioMode");
             int audio_volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            Log.d(TAG, "AudioVolume: " + audio_volume);
+//            Log.d(TAG, "AudioVolume: " + audio_volume);
             audioManager.setParameters("playback=" + mode + ";dac_volume=" + audio_volume);
 //            test();
 //            audioManager.setStreamVolume(STREAM_MUSIC, audio_volume, F);
+
         }
 
     }
@@ -3841,6 +3842,7 @@ public class MainActivity extends AppCompatActivity
 
             if (mSource.is(VideoSource.HDMI)) setAudioMode(AUDIO_MODE_IN_HDMI);
             if (mSource.is(VideoSource.SDI)) setAudioMode(AUDIO_MODE_IN_SDI);
+
 //            isPlaying = true;
 
             if (!isPlaying) {
@@ -3931,7 +3933,6 @@ public class MainActivity extends AppCompatActivity
         }
 
 //        if (audioManager != null) {
-//            setAudioMode(AUDIO_MODE_IN_NONE);
 //          audioManager = null;
 //        }
 //        isPlaying = false;

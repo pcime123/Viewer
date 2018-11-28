@@ -58,9 +58,9 @@ public abstract class McuCommandListener implements McuControl.OnReceiveBufferLi
 
             if (csum == ((cmd + data) & 0xFF)) {
                 onMcuCommand((char) cmd, (char) data);
-                Log.d("MCU", "onMcuCommand: " + cmd + " ," + data);
-            } else {
-                Log.e("MCU", "invalid cmd " + cmd + "," + data + "," + csum);
+//                Log.d("MCU", "onMcuCommand: " + cmd + " ," + data);
+//            } else {
+//                Log.e("MCU", "invalid cmd " + cmd + "," + data + "," + csum);
             }
 
             ptr += 5;
