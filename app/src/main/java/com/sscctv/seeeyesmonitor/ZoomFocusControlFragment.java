@@ -25,7 +25,7 @@ import android.widget.TextView;
 public class ZoomFocusControlFragment extends PtzControlFragment {
     //private static final String TAG = "ZoomFocusControlFragment";
     private OnFragmentInteractionListener mListener;
-    private TextView upButton, downButton, leftButton, rightButton;
+    private TextView upButton, downButton, leftButton, rightButton, exitButton;
 
     public ZoomFocusControlFragment() {
         // Required empty public constructor
@@ -143,7 +143,7 @@ public class ZoomFocusControlFragment extends PtzControlFragment {
         View osdButton = view.findViewById(R.id.key_osd);
         osdButton.setOnClickListener(switchToOsd);
 
-        View exitButton = view.findViewById(R.id.key_close);
+        exitButton = view.findViewById(R.id.key_close);
         exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

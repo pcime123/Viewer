@@ -1,5 +1,6 @@
 package com.sscctv.seeeyes.video;
 
+import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.os.Bundle;
 import android.view.SurfaceView;
@@ -219,4 +220,6 @@ public class HdmiInput extends CameraInput {
     protected CamcorderProfile getCamcorderProfile() {
         return CamcorderProfile.get(getCameraId(), CamcorderProfile.QUALITY_HIGH);
     }
+
+
 }

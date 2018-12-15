@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.preference.DialogPreference;
 import android.support.v7.preference.EditTextPreference;
 import android.support.v7.preference.EditTextPreferenceDialogFragmentCompat;
@@ -51,6 +52,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     private static final String ARG_UTC_TYPE = "utcType";
 
     private int mUtcType;
+    private int mReCheck;
     private String mPtzModeKey;
 
     private PreferenceManager mPreferenceManager;
@@ -133,7 +135,17 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
             mSharedPrefs = mPreferenceManager.getSharedPreferences();
         }
     }
+    public void reCheck(SharedPreferences sharedPreferences) {
+        mUtcType = getUtcMode(sharedPreferences);
 
+        mSharedPrefs.registerOnSharedPreferenceChangeListener(this);
+        mPreferenceManager.setOnDisplayPreferenceDialogListener(this);
+
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.detach(this).attach(this).commit();
+
+        Log.d(TAG, "reCheck: " + getUtcMode(sharedPreferences));
+    }
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -168,6 +180,10 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
         return getPtzMode() == PtzMode.UTC;
     }
 
+    private boolean isUccCheck() {
+        return isUtcSupported() && isUtcMode();
+    }
+
     private class PtzMenuAdapter extends BaseAdapter {
         private static final int TYPE_INVALID = -1;
         private static final int TYPE_LIST = 0;
@@ -192,7 +208,8 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                     return mMode;
 
                 case 1:
-                    return isUtcMode() ? mUtcProtocol : mPtzProtocol;
+
+                    return isUccCheck() ? mUtcProtocol : mPtzProtocol;
 
                 case 2:
                     return mAddress;
@@ -245,6 +262,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
 
         @Override
         public boolean isEnabled(int position) {
+//            Log.d(TAG, "Position: " + position + " getPtzMode: " + getPtzMode());
             switch (position) {
                 case 0:
                     return true;
@@ -365,6 +383,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                 case 1:
                     title = R.string.label_protocol;
                     if (isUtcSupported() && isUtcMode()) {
+
                         switch (mUtcType) {
                             case UtcProtocol.TYPE_AHD:
                                 final String[] ahdProtocols = getResources().getStringArray(R.array.utc_protocols_ahd);
@@ -379,12 +398,6 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                             case UtcProtocol.TYPE_CVI:
                                 final String[] cviProtocols = getResources().getStringArray(R.array.utc_protocols_cvi);
                                 value = cviProtocols[Integer.parseInt(mSharedPrefs.getString(getString(R.string.pref_utc_protocol_cvi), "0"))];
-
-                                Context context = getActivity();
-                                SharedPreferences pref = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = pref.edit();
-                                editor.putString("cvi", value);
-                                editor.apply();
                                 break;
 
                             case UtcProtocol.TYPE_CVBS:
@@ -393,11 +406,10 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                                 break;
 
                         }
+
                     } else {
                         final String[] ptzProtocols = getResources().getStringArray(R.array.ptz_protocols);
                         value = ptzProtocols[Integer.parseInt(mSharedPrefs.getString(getString(R.string.pref_ptz_protocol), "0"))];
-//                        Log.d(TAG, "ptzProtocol: " + value);
-
                     }
                     break;
 
@@ -491,7 +503,6 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     @Override
     public void onResume() {
         super.onResume();
-
         mSharedPrefs.registerOnSharedPreferenceChangeListener(this);
         mPreferenceManager.setOnDisplayPreferenceDialogListener(this);
 
@@ -512,7 +523,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Preference preference;
 
-        //Log.d(TAG, "onItemClick="+position+","+id);
+//        Log.d(TAG, "onItemClick="+position+","+id);
         switch (position - 1) {
             case 0:
                 preference = mMode;
@@ -605,7 +616,9 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                 key.equals(getString(R.string.pref_utc_protocol_cvi)) ||
                 key.equals(getString(R.string.pref_ptz_address)) ||
                 key.equals(getString(R.string.pref_ptz_baudrate)) ||
-                key.equals(getString(R.string.pref_ptz_termination))) {
+                key.equals(getString(R.string.pref_ptz_termination)) ||
+                key.equals(getString(R.string.pref_utc_mode))) {
+            reCheck(sharedPreferences);
             mAdapter.notifyDataSetChanged();
         }
     }
@@ -614,7 +627,8 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         // getSelectedItemPosition()은 헤더를 포함한 인덱스를 반환하므로 -1을 해야 한다.
         final Preference preference = mAdapter.getItem(mListView.getSelectedItemPosition() - 1);
-        //Log.d(TAG, "onKey="+keyCode);
+//        Log.d(TAG, "onKey="+keyCode);
+//        Log.d(TAG, "Preference Position="+ preference);
 
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (preference instanceof ListPreference) {
@@ -628,6 +642,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                         }
                         index -= 1;
                         listPreference.setValueIndex(index);
+//                        Log.d(TAG, "List Left key");
                         return true;
 
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
@@ -683,5 +698,10 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
             }
         }
         return false;
+    }
+
+
+    private int getUtcMode(SharedPreferences sharedPreferences) {
+        return Integer.parseInt(sharedPreferences.getString(getString(R.string.pref_utc_mode), "0"));
     }
 }

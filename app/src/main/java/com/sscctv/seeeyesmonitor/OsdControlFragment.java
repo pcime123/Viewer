@@ -26,6 +26,7 @@ import android.widget.TextView;
 public class OsdControlFragment extends PtzControlFragment {
     //private static final String TAG = "OsdControlFragment";
     private OnFragmentInteractionListener mListener;
+    private TextView upButton, downButton, leftButton, rightButton, menuButton, closeButton, exitButton, enterButton;
 
     public OsdControlFragment() {
         // Required empty public constructor
@@ -52,7 +53,7 @@ public class OsdControlFragment extends PtzControlFragment {
         View view = inflater.inflate(R.layout.fragment_osd_control, container, false);
 
 
-        TextView upButton = view.findViewById(R.id.key_up);
+        upButton = view.findViewById(R.id.key_up);
         upButton.setOnTouchListener((v, event) -> {
             int action = event.getAction();
 
@@ -68,7 +69,7 @@ public class OsdControlFragment extends PtzControlFragment {
             return true;
         });
 
-        TextView downButton = view.findViewById(R.id.key_down);
+        downButton = view.findViewById(R.id.key_down);
         downButton.setOnTouchListener((v, event) -> {
             int action = event.getAction();
 
@@ -84,7 +85,7 @@ public class OsdControlFragment extends PtzControlFragment {
             return true;
         });
 
-        TextView leftButton = view.findViewById(R.id.key_left);
+        leftButton = view.findViewById(R.id.key_left);
         leftButton.setOnTouchListener((v, event) -> {
             int action = event.getAction();
 
@@ -101,7 +102,7 @@ public class OsdControlFragment extends PtzControlFragment {
             return true;
         });
 
-        TextView rightButton = view.findViewById(R.id.key_right);
+        rightButton = view.findViewById(R.id.key_right);
         rightButton.setOnTouchListener((v, event) -> {
             int action = event.getAction();
 
@@ -119,7 +120,7 @@ public class OsdControlFragment extends PtzControlFragment {
         });
 
 
-        View enterButton = view.findViewById(R.id.key_enter);
+        enterButton = view.findViewById(R.id.key_enter);
         enterButton.setOnClickListener(v -> {
             if (mListener != null) {
                 mListener.onPtzMenuEnter();
@@ -136,22 +137,24 @@ public class OsdControlFragment extends PtzControlFragment {
         View osdButton = view.findViewById(R.id.key_osd);
         osdButton.setOnClickListener(switchToPtz);
 
-        View exitButton = view.findViewById(R.id.key_exit);
+        exitButton = view.findViewById(R.id.key_exit);
         exitButton.setOnClickListener(v -> {
             if (mListener != null) {
                 mListener.onPtzMenuEsc();
             }
         });
 
-        View closeButton = view.findViewById(R.id.key_close);
+        closeButton = view.findViewById(R.id.key_close);
         closeButton.setOnClickListener(v -> {
             if (mListener != null) {
                 mListener.onExitPtzMode();
+                mListener.onExitMenu();
             }
         });
 
-        View menuButton = view.findViewById(R.id.key_menu);
-        menuButton.setOnClickListener(v -> {
+        menuButton = view.findViewById(R.id.key_menu);
+        menuButton.setOnClickListener((v) -> {
+
             if (mListener != null) {
                 mListener.onPtzMenuOn();
             }
@@ -180,9 +183,10 @@ public class OsdControlFragment extends PtzControlFragment {
 
     @Override
     public boolean onKeyPress(int keyCode, KeyEvent event) {
+//        Log.d(TAG, "onKey= "+ keyCode + " event= " + event);
+
         if (mListener == null)
             return false;
-        //Log.d(TAG, "onKey="+keyCode);
 
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (keyCode) {
@@ -230,6 +234,7 @@ public class OsdControlFragment extends PtzControlFragment {
 
                 case KeyEvent.KEYCODE_HOME:
                     mListener.onExitPtzMode();
+                    mListener.onExitMenu();
                     return true;
 
                 case KeyEvent.KEYCODE_MENU:
@@ -275,5 +280,7 @@ public class OsdControlFragment extends PtzControlFragment {
         void onSwitchToPanTilt();
 
         void onExitPtzMode();
+
+        void onExitMenu();
     }
 }

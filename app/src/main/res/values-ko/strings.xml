@@ -29,6 +29,8 @@
     <string name="ptz_mode_rx">RS-485 RX</string>
     <string name="ptz_mode_analyze">Analyze</string>
     <string name="ptz_mode_utc">UTC</string>
+    <string name="ptz_mode_ucc">UCC</string>
+
 
     <string name="label_mode">동작모드</string>
     <string name="label_protocol">프로토콜</string>

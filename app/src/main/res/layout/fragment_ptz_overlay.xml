@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:descendantFocusability="afterDescendants"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
+    android:id="@+id/fragment_ptz_overlay"
+
     tools:context=".PtzOverlayFragment">
 
     <LinearLayout
@@ -67,19 +67,19 @@
         android:layout_marginRight="@dimen/ptz_settings_margin"
         android:layout_marginTop="3dp"
         android:background="@drawable/rounded_header_2"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/ptz_label_padding"
         android:paddingLeft="@dimen/ptz_settings_padding"
         android:paddingRight="@dimen/ptz_settings_padding"
-        android:paddingTop="@dimen/ptz_label_padding">
+        android:paddingTop="@dimen/ptz_label_padding"
+
+        >
 
         <TextView
             android:id="@+id/value_mode"
             android:layout_width="157dp"
             android:layout_height="wrap_content"
-          android:textSize="@dimen/text_size"
+            android:textSize="@dimen/text_size"
             android:textColor="@color/WhiteSmoke"
             android:textStyle="bold" />
 

@@ -1,6 +1,7 @@
 package com.sscctv.seeeyes.video;
 
 import android.content.Context;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.view.SurfaceView;
 
@@ -246,4 +247,6 @@ public class AnalogInput extends CameraInput {
         }
         return std;
     }
+
+
 }

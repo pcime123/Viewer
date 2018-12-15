@@ -104,5 +104,7 @@
     <string name="poc_pse_support">PoE is operating. Please try after ending PoE.</string>
     <string name="maxSize">Recording files can be generated up to 3G, and recording is ended.</string>
     <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
+    <string name="ptz_mode_ucc">UCC</string>
+
 
 </resources>

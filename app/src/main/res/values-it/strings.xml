@@ -29,6 +29,8 @@
     <string name="ptz_mode_rx">RS-485RX</string>
     <string name="ptz_mode_analyze">Analisi</string>
     <string name="ptz_mode_utc">UTC</string>
+    <string name="ptz_mode_ucc">UCC</string>
+
 
     <string name="label_mode">Modalità</string>
     <string name="label_protocol">Protocollo</string>

@@ -48,6 +48,7 @@
     <string name="pref_ptz_address" translatable="false">ptz_address</string>
     <string name="pref_ptz_baudrate" translatable="false">ptz_baudrate</string>
     <string name="pref_ptz_termination" translatable="false">ptz_termination</string>
+    <string name="pref_utc_mode" translatable="false">utc_mode</string>
 
     <string name="ptz_address_format" translatable="false">%03d</string>
 

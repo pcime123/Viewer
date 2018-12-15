@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceManager;
 //import android.util.Log;
@@ -51,6 +52,7 @@ public class PtzOverlayFragment extends Fragment
 
     private int mUtcType;
     private int mControlMode;
+    private int mPtzMode;
 
 
     private Spinner spinner_protocol, spinner_address, spinner_baudrate;
@@ -96,6 +98,14 @@ public class PtzOverlayFragment extends Fragment
         spinner_address = view.findViewById(R.id.value_address);
         spinner_baudrate = view.findViewById(R.id.value_baudrate);
 
+        spinner_protocol.setFocusable(false);
+        spinner_protocol.setFocusableInTouchMode(false);
+
+        spinner_address.setFocusable(false);
+        spinner_address.setFocusableInTouchMode(false);
+
+        spinner_baudrate.setFocusable(false);
+        spinner_baudrate.setFocusableInTouchMode(false);
         return view;
     }
 
@@ -149,6 +159,11 @@ public class PtzOverlayFragment extends Fragment
         }
 
     }
+
+    public void reCheck(SharedPreferences sharedPreferences) {
+        mUtcType = getUtcMode(sharedPreferences);
+    }
+
 
 
     @Override
@@ -275,10 +290,10 @@ public class PtzOverlayFragment extends Fragment
 
             textView = view.findViewById(R.id.value_mode);
             if (value != null) {
-                int ptzMode = Integer.parseInt(value);
-                textView.setText(ptzModes[ptzMode]);
+                mPtzMode = Integer.parseInt(value);
+                textView.setText(ptzModes[mPtzMode]);
 
-                switch (ptzMode) {
+                switch (mPtzMode) {
                     case PtzMode.TX:
                     case PtzMode.UTC:
                         setControlMode(PtzOverlayFragment.CONTROL_OSD);
@@ -293,31 +308,36 @@ public class PtzOverlayFragment extends Fragment
                         break;
                 }
 
-                updateProtocol(view, sharedPreferences, ptzMode == PtzMode.UTC);
-                updateAddress(view, sharedPreferences, ptzMode == PtzMode.UTC);
-                updateBaudRate(view, sharedPreferences, ptzMode == PtzMode.UTC);
+                updateProtocol(sharedPreferences, mPtzMode == PtzMode.UTC);
+                updateAddress(sharedPreferences, mPtzMode == PtzMode.UTC);
+                updateBaudRate(sharedPreferences, mPtzMode == PtzMode.UTC);
             }
         } else if (key.equals(getString(R.string.pref_ptz_protocol))) {
-            updateProtocol(view, sharedPreferences, false);
+            updateProtocol(sharedPreferences, false);
         } else if (key.equals(getString(R.string.pref_utc_protocol_cvbs))
                 || key.equals(getString(R.string.pref_utc_protocol_tvi))
                 || key.equals(getString(R.string.pref_utc_protocol_ahd))
                 || key.equals(getString(R.string.pref_utc_protocol_cvi))) {
             int ptzMode = Integer.parseInt(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null));
-            updateProtocol(view, sharedPreferences, ptzMode == PtzMode.UTC);
+            updateProtocol(sharedPreferences, ptzMode == PtzMode.UTC);
         } else if (key.equals(getString(R.string.pref_ptz_address))) {
             int ptzMode = Integer.parseInt(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null));
-            updateAddress(view, sharedPreferences, ptzMode == PtzMode.UTC && mUtcType != UtcProtocol.TYPE_CVI);
+            updateAddress(sharedPreferences, ptzMode == PtzMode.UTC && mUtcType != UtcProtocol.TYPE_CVI);
         } else if (key.equals(getString(R.string.pref_ptz_baudrate))) {
             int ptzMode = Integer.parseInt(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null));
-            updateBaudRate(view, sharedPreferences, ptzMode == PtzMode.UTC);
+            updateBaudRate(sharedPreferences, ptzMode == PtzMode.UTC);
         } else if (key.equals(getString(R.string.pref_ptz_termination))) {
             //Log.d(TAG, key + " = " + sharedPreferences.getBoolean(key, false));
+        } else  if (key.equals(getString(R.string.pref_utc_mode))) {
+            reCheck(sharedPreferences);
+            updateProtocol(sharedPreferences, mPtzMode == PtzMode.UTC);
+            updateAddress(sharedPreferences, mPtzMode == PtzMode.UTC);
+            updateBaudRate(sharedPreferences, mPtzMode == PtzMode.UTC);
         }
 
     }
 
-    private void updateProtocol(View view, SharedPreferences sharedPreferences, boolean isUtc) {
+    private void updateProtocol(SharedPreferences sharedPreferences, boolean isUtc) {
 //        TextView textView = (TextView) view.findViewById(R.id.value_protocol);
 
         if (mControlMode == CONTROL_RX) {
@@ -325,8 +345,6 @@ public class PtzOverlayFragment extends Fragment
 //            textView.setText("-");
         } else {
             spinner_protocol.setVisibility(View.VISIBLE);
-
-
 
             switch (isUtc ? mUtcType : UtcProtocol.TYPE_NONE) {
                 case UtcProtocol.TYPE_CVBS:
@@ -359,7 +377,7 @@ public class PtzOverlayFragment extends Fragment
             final String value = sharedPreferences.getString(getString(protocolKey), null);
             if (value != null) {
                 final String[] ptzProtocols = getResources().getStringArray(labelKey);
-//                Log.d(TAG, "protocolkey: " + Arrays.toString(ptzProtocols));
+                Log.d(TAG, "protocolkey: " + Arrays.toString(ptzProtocols));
 
                 int index = Integer.parseInt(value);
                 if (index < ptzProtocols.length) {
@@ -387,6 +405,7 @@ public class PtzOverlayFragment extends Fragment
                 int item = spinner_protocol.getSelectedItemPosition();
                 final String key = getString(protocolKey);
 //                Log.d(TAG, "Protocol: " + key + " Item: " + item);
+//                changePtzProtocol(item);
 
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 putIntegerPreference(sharedPreferences, key, item);
@@ -406,7 +425,7 @@ public class PtzOverlayFragment extends Fragment
     }
 
 
-    private void updateAddress(View view, SharedPreferences sharedPreferences, boolean forceDisable) {
+    private void updateAddress(SharedPreferences sharedPreferences, boolean forceDisable) {
 //        TextView textView = (TextView) view.findViewById(R.id.value_address);
 
         if (forceDisable || mControlMode == CONTROL_RX || mControlMode == CONTROL_ANALYZER) {
@@ -472,7 +491,7 @@ public class PtzOverlayFragment extends Fragment
         });
     }
 
-    private void updateBaudRate(View view, SharedPreferences sharedPreferences, boolean forceDisable) {
+    private void updateBaudRate(SharedPreferences sharedPreferences, boolean forceDisable) {
 //        TextView textView = (TextView) view.findViewById(R.id.value_baudrate);
 
         if (forceDisable) {
@@ -545,4 +564,10 @@ public class PtzOverlayFragment extends Fragment
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         putIntegerPreference(sharedPreferences, key, item);
     }
+
+    private int getUtcMode(SharedPreferences sharedPreferences) {
+        return Integer.parseInt(sharedPreferences.getString(getString(R.string.pref_utc_mode), "0"));
+    }
+
+
 }

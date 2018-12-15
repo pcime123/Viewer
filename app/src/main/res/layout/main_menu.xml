@@ -8,8 +8,7 @@
     android:layout_gravity="end"
     android:fitsSystemWindows="true"
     android:descendantFocusability="afterDescendants"
-    android:focusable="true"
-   >
+    >
 
     <LinearLayout
         android:id="@+id/sub_menu"

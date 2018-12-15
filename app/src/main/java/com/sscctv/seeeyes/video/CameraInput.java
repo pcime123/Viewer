@@ -1,11 +1,14 @@
 package com.sscctv.seeeyes.video;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -13,6 +16,10 @@ import com.sscctv.seeeyesmonitor.MainActivity;
 import com.sscctv.seeeyesmonitor.R;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by trlim on 2015. 12. 17..
@@ -21,9 +28,8 @@ import java.io.IOException;
  */
 // Camera API는 camera2로 대체되었으나 API 17에서는 쓸 수가 없으므로 경고를 잠재운다
 @SuppressWarnings("deprecation")
-public abstract class CameraInput extends VideoInput
-        //Camera.PreviewCallback
-{
+public abstract class CameraInput extends VideoInput {
+//        implements Camera.PreviewCallback {
     private static final String TAG = "CameraInput";
     private static int re_width, re_height;
 
@@ -32,8 +38,10 @@ public abstract class CameraInput extends VideoInput
     private String _outputPath;
     private String veryLongString;
     private Context mContext;
-
-
+    private int width, height;
+    private byte[] camData;
+    private TimerTask mTask;
+    private Timer mTimer;
 
 
     CameraInput(int input, SurfaceView surfaceView, Listener listener) {
@@ -44,14 +52,16 @@ public abstract class CameraInput extends VideoInput
 //    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
 //    @Override
 //    public void onPreviewFrame(byte[] data, Camera camera) {
-//        Camera.Parameters params = camera.getParameters();
-//        width = params.getPreviewSize().width;
-//        height = params.getPreviewSize().height;
+//        camera = getCamera();
+//        Camera.Parameters parameters = camera.getParameters();
+//
+//        width = parameters.getPreviewSize().width;
+//        height = parameters.getPreviewSize().height;
 //
 //
 //        Log.d(TAG, "Data: " + Arrays.toString(data));
-////        Log.d(TAG, "RGB: " + Arrays.toString(decodeYUV420SP(data, width, height)));
-//        Log.d(TAG, "Byte? " + data.length);
+//        Log.d(TAG, "RGB: " + Arrays.toString(decodeYUV420SP(data, width, height)));
+////        Log.d(TAG, "Byte? " + data.length);
 //
 //    }
 
@@ -70,7 +80,6 @@ public abstract class CameraInput extends VideoInput
     }
 
     public int[] decodeYUV420SP(byte[] yuv420sp, int width, int height) {
-
         final int frameSize = width * height;
 
         int rgb[] = new int[width * height];
@@ -105,6 +114,50 @@ public abstract class CameraInput extends VideoInput
         return rgb;
     }
 
+    public static void encodeYUV420SP(byte[] yuv420sp, int[] rgba, int width, int height) {
+//        Log.d(TAG, "encodeYUV420SP: " + Arrays.toString(yuv420sp));
+        final int frameSize = width * height;
+
+        int[] U, V;
+        U = new int[frameSize];
+        V = new int[frameSize];
+
+        final int uvwidth = width / 2;
+
+        int r = 0, g = 0, b = 0, y = 0, u = 0, v = 0;
+        for (int j = 0; j < height; j++) {
+            int index = width * j;
+            for (int i = 0; i < width; i++) {
+
+                r = Color.red(rgba[index]);
+                g = Color.green(rgba[index]);
+                b = Color.blue(rgba[index]);
+
+                // rgb to yuv
+                y = (66 * r + 129 * g + 25 * b + 128) >> 8 + 16;
+                u = (-38 * r - 74 * g + 112 * b + 128) >> 8 + 128;
+                v = (112 * r - 94 * g - 18 * b + 128) >> 8 + 128;
+
+                // clip y
+                yuv420sp[index] = (byte) ((y < 0) ? 0 : ((y > 255) ? 255 : y));
+                U[index] = u;
+                V[index++] = v;
+//                Log.d(TAG, "width: " + i);
+                if (j == 750 && i == 1200) {
+                    Log.d(TAG, "R: " + r + " G: " + g + " B: " + b + " Y: " + y + " U: " + u + " V: " + v);
+
+                }
+            }
+
+//            int[] data = {r, g, b, y, u, v};
+//            ByteBuffer buffer = ByteBuffer.allocate(1100);
+//            buffer.put(j, data);
+//            Log.d(TAG, "Height: " + j);
+//            Log.d(TAG, "R: " + r + " G: " + g + " B: " + b + " Y: " + y + " U: " + u + " V: " + v);
+        }
+
+    }
+
     protected int getCameraId() {
         return getInput();
     }
@@ -124,7 +177,18 @@ public abstract class CameraInput extends VideoInput
 
     @Override
     public void start(Bundle args) {
-
+//        Log.d(TAG, "Camera Start");
+//        mTask = new TimerTask() {
+//            @Override
+//            public void run() {
+//                if (camData != null) {
+//                    encodeYUV420SP(camData, decodeYUV420SP(camData, width, height), width, height);
+//                }
+////                Log.d(TAG, "Count: " );
+//            }
+//        };
+//        mTimer = new Timer();
+//        mTimer.schedule(mTask, 1000, 10000);
         //startCameraInput();
     }
 
@@ -152,6 +216,7 @@ public abstract class CameraInput extends VideoInput
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 //        Log.i(TAG, "Surface Changed  -  Format: " + format + " Width: " + width + " Height: " + height);
+//        Log.d(TAG, "surfaceChanged Start");
 
         if (getSurfaceHolder().getSurface() == null) {
             // preview surface does not exist
@@ -176,25 +241,25 @@ public abstract class CameraInput extends VideoInput
             //return;
             stopPreview();
             stopCameraInput();
-            _camera = null;
         }
 
         int numCameras = Camera.getNumberOfCameras();
 
         if (numCameras > 0) {
             if (getCameraId() < numCameras) {
-//                Log.i(TAG, "startCameraInput()");
+//                Log.d(TAG, "startCameraInput() " + _camera + " , " + getCameraId());
+
                 _camera = Camera.open(getCameraId());
 
                 // get Camera parameters
                 Camera.Parameters params = _camera.getParameters();
-
                 for (int[] range : params.getSupportedPreviewFpsRange()) {
 //                    Log.i(TAG, "Camera Fps Range: " + range[0] + ", " + range[1]);
                 }
 
                 params.setPreviewFpsRange(5000, 5000);
                 params.setRecordingHint(false);
+
                 _camera.setParameters(params);
 //                params.setPreviewFormat(ImageFormat.YUV_420_888);
 
@@ -213,7 +278,7 @@ public abstract class CameraInput extends VideoInput
             public void onError(int error, Camera camera) {
                 android.util.Log.e(TAG, "onError: " + error + "  " + camera);
                 if (error == Camera.CAMERA_ERROR_SERVER_DIED) {
-                    ((MainActivity)MainActivity.mContext).showRecordErrorDialog();
+                    ((MainActivity) MainActivity.mContext).showRecordErrorDialog();
 
                 }
 
@@ -250,10 +315,8 @@ public abstract class CameraInput extends VideoInput
                 // Preview must be started before you can take a picture.
                 _camera.startPreview();
             }
-        } catch (IOException exception) {
+        } catch (IOException | RuntimeException exception) {
 //            Log.e(TAG, "Error setting camera preview", exception);
-        } catch (RuntimeException exception) {
-//            Log.e(TAG, "Error starting camera preview", exception);
         }
     }
 
@@ -286,28 +349,11 @@ public abstract class CameraInput extends VideoInput
         final SnapshotCallback cb = callback;
         final VideoInput self = this;
 
-        camera.takePicture(new Camera.ShutterCallback() {
-            @Override
-            public void onShutter() {
-                cb.onShutter();
-            }
-        }, new Camera.PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
-                cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_RAW, data, self);
-            }
-        }, new Camera.PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
-                cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_POSTVIEW, data, self);
-            }
-        }, new Camera.PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
-                cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_JPEG, data, self);
-
-                restartPreview();
-            }
+        camera.takePicture(cb::onShutter, (data, camera1)
+                -> cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_RAW, data, self), (data, camera13)
+                -> cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_POSTVIEW, data, self), (data, camera12)
+                -> { cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_JPEG, data, self);
+            restartPreview();
         });
     }
 
@@ -394,7 +440,7 @@ public abstract class CameraInput extends VideoInput
             recorder.setAudioChannels(profile.audioChannels);
             recorder.setAudioSamplingRate(profile.audioSampleRate);
             recorder.setAudioEncoder(profile.audioCodec);
-          }
+        }
 //        recorder.setProfile(profile);
         recorder.setMaxFileSize(3500000000L);
 
@@ -407,8 +453,8 @@ public abstract class CameraInput extends VideoInput
             @Override
             public void onInfo(MediaRecorder mr, int what, int extra) {
                 if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
-                    ((MainActivity)MainActivity.mContext).stopRecording();
-                    ((MainActivity)MainActivity.mContext).showToast(R.string.maxSize);
+                    ((MainActivity) MainActivity.mContext).stopRecording();
+                    ((MainActivity) MainActivity.mContext).showToast(R.string.maxSize);
 
                 }
 //                android.util.Log.e(TAG, "onInfo: " + what + "  " + extra);
@@ -426,7 +472,6 @@ public abstract class CameraInput extends VideoInput
         }
         return true;
     }
-
 
 
 //    private boolean prepareVideoRecorder(String path, boolean hasAudio) {

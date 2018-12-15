@@ -36,8 +36,8 @@
     <dimen name="ptz_control_margin">8dp</dimen>
     <dimen name="ptz_control_padding">8dp</dimen>
 
-    <integer name="ptz_rx_lines">20</integer>
-    <integer name="ptz_analyzer_lines">20</integer>
+    <integer name="ptz_rx_lines">17</integer>
+    <integer name="ptz_analyzer_lines">13</integer>
 
     <dimen name="text_size_big">20sp</dimen>
     <dimen name="text_size">18sp</dimen>

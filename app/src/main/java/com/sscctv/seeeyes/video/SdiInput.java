@@ -1,5 +1,6 @@
 package com.sscctv.seeeyes.video;
 
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.view.SurfaceView;
 
@@ -276,6 +277,7 @@ public class SdiInput extends CameraInput {
         }
         return std;
     }
+
 
 
     public final class CrcCounts {

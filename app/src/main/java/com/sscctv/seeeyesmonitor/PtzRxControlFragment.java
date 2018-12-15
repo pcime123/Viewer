@@ -60,6 +60,7 @@ public class PtzRxControlFragment extends PtzControlFragment {
             public void onClick(View v) {
                 if (mListener != null) {
                     mListener.onExitPtzMode();
+                    mListener.onExitMenu();
                 }
             }
         });
@@ -108,6 +109,7 @@ public class PtzRxControlFragment extends PtzControlFragment {
 
                 case KeyEvent.KEYCODE_BACK:
                     mListener.onExitPtzMode();
+                    mListener.onExitMenu();
                     return true;
             }
         }
@@ -131,5 +133,7 @@ public class PtzRxControlFragment extends PtzControlFragment {
         void onDecPtzBaudRate();
         void onClearPtzScreen();
         void onExitPtzMode();
+        void onExitMenu();
+
     }
 }

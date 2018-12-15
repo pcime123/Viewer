@@ -26,7 +26,7 @@ import android.widget.TextView;
 public class PanTiltControlFragment extends PtzControlFragment {
     //private static final String TAG = "PanTiltControlFragment";
     private OnFragmentInteractionListener mListener;
-    private TextView upButton, downButton, leftButton, rightButton;
+    private TextView upButton, downButton, leftButton, rightButton, exitButton;
     public PanTiltControlFragment() {
         // Required empty public constructor
     }
@@ -148,12 +148,14 @@ public class PanTiltControlFragment extends PtzControlFragment {
         View osdButton = view.findViewById(R.id.key_osd);
         osdButton.setOnClickListener(switchToOsd);
 
-        View exitButton = view.findViewById(R.id.key_close);
+        exitButton = view.findViewById(R.id.key_close);
         exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mListener != null) {
                     mListener.onExitPtzMode();
+                    mListener.onExitMenu();
+
                 }
             }
         });
@@ -229,6 +231,7 @@ public class PanTiltControlFragment extends PtzControlFragment {
                 case KeyEvent.KEYCODE_HOME:
                 case KeyEvent.KEYCODE_BACK:
                     mListener.onExitPtzMode();
+                    mListener.onExitMenu();
                     return true;
 
                 case KeyEvent.KEYCODE_BUTTON_MODE:
@@ -266,5 +269,7 @@ public class PanTiltControlFragment extends PtzControlFragment {
         void onSwitchToOsd();
 
         void onExitPtzMode();
+        void onExitMenu();
+
     }
 }
