@@ -1,0 +1,8 @@
+Executable : C:\Users\JinseopKim\AppData\Local\Android\Sdk\cmake\3.6.4111459\bin\cmake.exe
+arguments : 
+--build
+E:\001. Project\006. Monitor\SC-IPM07PRO\Apps\02-Viewer\Viewer\seeeyes\.externalNativeBuild\cmake\release\armeabi-v7a
+--target
+seeeyes-lib
+jvmArgs : 
+

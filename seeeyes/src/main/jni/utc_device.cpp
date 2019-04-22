@@ -84,7 +84,7 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
     //    }
     //}
     if (protocol == PROTOCOL_AHD_A_CPC) {
-        if ((mode == TP2802_720P30) || (mode == TP2802_720P25)) {
+        if ((mode == TP2802_720P30) || (mode == TP2802_720P25) || (mode == TP2802_720P25V2) || (mode == TP2802_720P30V2)) {
             protocol = PROTOCOL_AHD_A_CPC_720P;
         }
     }
@@ -102,6 +102,8 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
     switch (protocol) {
         case PROTOCOL_TVI_HIK_VISION0:   // HIK-VISION
         case PROTOCOL_TVI_HIK_VISION1:
+//            LOGD("Command: %d", command);
+
             PTZ_data.mode = PTZ_TVI;
 
             txd[0] = txd[7] = 0xb5;
@@ -172,7 +174,8 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
             break;
 
         case PROTOCOL_TVI_PELCO_C:   // CNB :PELCO-C
-            PTZ_data.mode = PTZ_TVI_PELCO;
+            PTZ_data.mode = PTZ_TVI;
+//            LOGD("Command: %d", command);
 
             txd[0] = 0xFF;                            // Data Packet의 시작
             txd[1] = 0x00;//Ptz_Cmd.Addr;			// receive device Ptz_Cmd.Address
@@ -193,25 +196,56 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
                     txd[3] = 0x80;
                     break;
 //                case FOCUS_AUTO:	break;
+                case KEY_MENU_UP:
+                case KEY_TILT_UP:
+                    txd[3] |= 0x08;
+                    txd[5] = 0x30;
+                    break;
+
+                case KEY_MENU_DOWN:
+                case KEY_TILT_DOWN:
+                    txd[3] |= 0x10;
+                    txd[5] = 0x30;
+                    break;
+
+                case KEY_MENU_RIGHT:
+                case KEY_PAN_RIGHT:
+                    txd[3] |= 0x02;
+                    txd[4] = 0x30;
+                    break;
+
+                case KEY_MENU_LEFT:
+                case KEY_PAN_LEFT:
+                    txd[3] |= 0x04;
+                    txd[4] = 0x30;
+                    break;
+
+                case KEY_ZOOM_WIDE:
+                    txd[3] |= 0x40;
+                    break;
+
+                case KEY_ZOOM_TELE:
+                    txd[3] |= 0x20;
+                    break;
                 default:
-                    if (command & KEY_PAN_RIGHT) {
-                        txd[3] |= 0x02;
-                        txd[4] = 0x30;
-                    }
-                    else if (command & KEY_PAN_LEFT) {
-                        txd[3] |= 0x04;
-                        txd[4] = 0x30;
-                    }
-                    if (command & KEY_TILT_UP) {
-                        txd[3] |= 0x08;
-                        txd[5] = 0x30;
-                    }
-                    else if (command & KEY_TILT_DOWN) {
-                        txd[3] |= 0x10;
-                        txd[5] = 0x30;
-                    }
-                    if (command & KEY_ZOOM_TELE) { txd[3] |= 0x20; }
-                    else if (command & KEY_ZOOM_WIDE) { txd[3] |= 0x40; }
+//                    if (command & KEY_PAN_RIGHT) {
+//                        txd[3] |= 0x02;
+//                        txd[4] = 0x30;
+//                    }
+//                    else if (command & KEY_PAN_LEFT) {
+//                        txd[3] |= 0x04;
+//                        txd[4] = 0x30;
+//                    }
+//                    if (command & KEY_TILT_UP) {
+//                        txd[3] |= 0x08;
+//                        txd[5] = 0x30;
+//                    }
+//                    else if (command & KEY_TILT_DOWN) {
+//                        txd[3] |= 0x10;
+//                        txd[5] = 0x30;
+//                    }
+//                    if (command & KEY_ZOOM_TELE) { txd[3] |= 0x20; }
+//                    else if (command & KEY_ZOOM_WIDE) { txd[3] |= 0x40; }
                     break;
             }
 
@@ -219,11 +253,19 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
             break;
 
         case PROTOCOL_AHD_A_CPC:
-            if (mode == TP2802_QXGA18) PTZ_data.mode = PTZ_HDA_3M18;
-            else if (mode == TP2802_QXGA25 || mode == TP2802_QXGA30) PTZ_data.mode = PTZ_HDA_3M25;
-            else if (mode == TP2802_QHD25 || mode == TP2802_QHD30 || mode == TP2802_5M20)
+            if (mode == TP2802_QXGA18
+                    )
+                PTZ_data.mode = PTZ_HDA_3M18;
+            else if (mode == TP2802_QXGA25 || mode == TP2802_QXGA30
+                    )
+                PTZ_data.mode = PTZ_HDA_3M25;
+            else if (mode == TP2802_QHD25 || mode == TP2802_QHD30 || mode == TP2802_5M20
+                     || mode == TP2802_8M15
+                    )
                 PTZ_data.mode = PTZ_HDA_4M25;
-            else if (mode == TP2802_QHD15 || mode == TP2802_5M12) PTZ_data.mode = PTZ_HDA_4M15;
+            else if (mode == TP2802_QHD15 || mode == TP2802_5M12
+                    )
+                PTZ_data.mode = PTZ_HDA_4M15;
             else PTZ_data.mode = PTZ_HDA_1080P;
 
             switch (command) {
@@ -322,14 +364,14 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
                     break;
                 case KEY_MENU_ON:
                     txd[0] = 0x00;
-                    txd[1] = 0x03;
-                    txd[2] = 0x03;
-                    txd[3] = 0x5f;
+                    txd[1] = 0xC0;
+                    txd[2] = 0xC0;
+                    txd[3] = 0xFA;
                     break;
                 case KEY_MENU_ESC:
                     break;
                 case KEY_MENU_ENTER:
-                    txd[0] = 0x02;
+                    txd[0] = 0x40;
                     txd[1] = 0x00;
                     txd[2] = 0x00;
                     txd[3] = 0x00;
@@ -337,53 +379,53 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
                 case KEY_MENU_UP:
                 case KEY_TILT_UP:
                     txd[0] = 0x00;
-                    txd[1] = 0x08;
-                    txd[2] = 0x08;
-                    txd[3] = 0x32;
+                    txd[1] = 0x10;
+                    txd[2] = 0x10;
+                    txd[3] = 0x4C;
                     break;
                 case KEY_MENU_DOWN:
                 case KEY_TILT_DOWN:
                     txd[0] = 0x00;
-                    txd[1] = 0x10;
-                    txd[2] = 0x10;
-                    txd[3] = 0x32;
+                    txd[1] = 0x08;
+                    txd[2] = 0x08;
+                    txd[3] = 0x4C;
                     break;
                 case KEY_MENU_LEFT:
                 case KEY_PAN_LEFT:
                     txd[0] = 0x00;
-                    txd[1] = 0x04;
-                    txd[2] = 0x04;
+                    txd[1] = 0x20;
+                    txd[2] = 0x20;
                     txd[3] = 0x00;
                     break;
                 case KEY_MENU_RIGHT:
                 case KEY_PAN_RIGHT:
                     txd[0] = 0x00;
-                    txd[1] = 0x02;
-                    txd[2] = 0x02;
+                    txd[1] = 0x40;
+                    txd[2] = 0x40;
                     txd[3] = 0x00;
                     break;
                 case KEY_FOCUS_NEAR:
-                    txd[0] = 0x01;
+                    txd[0] = 0x80;
                     txd[1] = 0x00;
                     txd[2] = 0x00;
                     txd[3] = 0x00;
                     break;
                 case KEY_FOCUS_FAR:
                     txd[0] = 0x00;
-                    txd[1] = 0x80;
-                    txd[2] = 0x80;
+                    txd[1] = 0x01;
+                    txd[2] = 0x01;
                     txd[3] = 0x00;
                     break;
                 case KEY_ZOOM_WIDE:
                     txd[0] = 0x00;
-                    txd[1] = 0x40;
-                    txd[2] = 0x40;
+                    txd[1] = 0x02;
+                    txd[2] = 0x02;
                     txd[3] = 0x00;
                     break;
                 case KEY_ZOOM_TELE:
                     txd[0] = 0x00;
-                    txd[1] = 0x20;
-                    txd[2] = 0x20;
+                    txd[1] = 0x04;
+                    txd[2] = 0x04;
                     txd[3] = 0x00;
                     break;
             }
@@ -474,16 +516,20 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
         case PROTOCOL_CVI_DAHUA0:
         case PROTOCOL_CVI_DAHUA1:
         case PROTOCOL_CVI_DAHUA2:
-            if (mode == TP2802_QHD25 || mode == TP2802_QHD30 || mode == TP2802_5M12 ||
-                mode == TP2802_5M20)
+
+            if (mode == TP2802_QHD25 || mode == TP2802_QHD30 || mode == TP2802_5M12 || mode == TP2802_5M20){
                 PTZ_data.mode = PTZ_HDC_QHD;
+            }
+            else if(mode == TP2802_8M12 || mode == TP2802_8M15) {
+                PTZ_data.mode = PTZ_HDC_8M15;
+            }
             else PTZ_data.mode = PTZ_HDC;
 
             txd[0] = 0xa5;
-            txd[1] = address;
+            txd[1] = 0x01;
 
             if (protocol == PROTOCOL_CVI_DAHUA0) {
-                    LOGD("PROTOCOL_CVI_DAHUA0: %d\n", command);
+//                    LOGD("PROTOCOL_CVI_DAHUA0: %d\n", command);
 
                 switch (command) {
                     case KEY_PTZ_STOP:
@@ -544,7 +590,7 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
                         break;
                 }
             } else if (protocol == PROTOCOL_CVI_DAHUA1) {
-                LOGD("PROTOCOL_CVI_DAHUA1: %d\n", command);
+//                LOGD("PROTOCOL_CVI_DAHUA1: %d\n", command);
 
                 switch (command) {
                     case KEY_PTZ_STOP:
@@ -604,7 +650,7 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
                         break;
                 }
             } else if (protocol == PROTOCOL_CVI_DAHUA2) {
-                LOGD("PROTOCOL_CVI_DAHUA2: %d\n", command);
+//                LOGD("PROTOCOL_CVI_DAHUA2: %d\n", command);
 
                 switch (command) {
                     case KEY_PTZ_STOP:
@@ -698,7 +744,7 @@ com_sscctv_seeeyes_ptz_UtcWriter_send_command(JNIEnv *env, jobject thiz, jint fd
 }
 
 static JNINativeMethod method_table[] = {
-        {"native_open", "(Ljava/lang/String;)Landroid/os/ParcelFileDescriptor;",
+        {"native_open",         "(Ljava/lang/String;)Landroid/os/ParcelFileDescriptor;",
                 (void *) com_sscctv_seeeyes_ptz_UtcWriter_open},
         {"native_send_command", "(IIIIC)I",
                 (void *) com_sscctv_seeeyes_ptz_UtcWriter_send_command},

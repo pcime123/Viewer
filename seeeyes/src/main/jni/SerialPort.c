@@ -91,7 +91,7 @@ JNIEXPORT jobject JNICALL Java_com_sscctv_seeeyes_Rs485Port_open
     {
         jboolean iscopy;
         const char *path_utf = (*env)->GetStringUTFChars(env, path, &iscopy);
-        LOGD("Opening serial port %s with flags 0x%x", path_utf, O_RDWR | flags);
+    //    LOGD("Opening serial port %s with flags 0x%x", path_utf, O_RDWR | flags);
         fd = open(path_utf, O_RDWR | flags);
         LOGD("Port open() fd = %d", fd);
         (*env)->ReleaseStringUTFChars(env, path, path_utf);
@@ -108,7 +108,7 @@ JNIEXPORT jobject JNICALL Java_com_sscctv_seeeyes_Rs485Port_open
     /* Configure device */
     {
         struct termios cfg;
-        LOGD("Configuring serial port");
+     //   LOGD("Configuring serial port");
         if (tcgetattr(fd, &cfg))
         {
             LOGE("tcgetattr() failed");

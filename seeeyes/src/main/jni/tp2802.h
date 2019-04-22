@@ -56,6 +56,11 @@ enum {
     TP2802_4M25         =   0x1D,   //2688x1520@25 for TVI(for future)
     TP2802_5M20         =   0x1E,   //2592x1944@20 for TVI/HDA
     TP2802_8M15         =   0x1F,   //3840x2160@20 for TVI(for future)
+    TP2802_8M12			=	0x20,   //3840x2160@12.5 for TVI(for future)
+    TP2802_1080P15		=	0x31,	//1920x1080@15 for TVI
+    TP2802_1080P60		=	0x32,	//1920x1080@60 for TVI
+    TP2802_960P30		=	0x33,	//1280x960@30 for TVI
+    TP2802_1080P20		=	0x34,	//1920x1080@20 for TVI
 
     TP2802_NO_SIGNAL	=	0xff
 };
@@ -72,6 +77,7 @@ enum{
     PTZ_HDA_4M25, //HDA QHD25,QHD30,5M20
     PTZ_HDA_4M15, //HDA QHD15,5M12.5
     PTZ_HDC_QHD,  //HDC QHD25,QHD30
+    PTZ_HDC_8M15, //HDC 8M12,8M15
 };
 
 typedef struct _tp2802_register
