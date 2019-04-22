@@ -3,7 +3,10 @@ package com.sscctv.seeeyesmonitor;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,8 +29,12 @@ public class RecordOverlayFragment extends Fragment {
     private static final String ARG_CAPTURE_TYPE = "captureType";
 
     private int _captureType;
+    private long mLastClickTime;
+
+    private static final long MIN_CLICK_INTERVAL = 600;
 
     private OnFragmentInteractionListener mListener;
+    private String TAG = "RecordOverlayFragment";
 
     public RecordOverlayFragment() {
         // Required empty public constructor
@@ -55,13 +62,16 @@ public class RecordOverlayFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if (getArguments() != null) {
             _captureType = getArguments().getInt(ARG_CAPTURE_TYPE);
+            mLastClickTime = SystemClock.elapsedRealtime();
+
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_record_overlay, container, false);
@@ -88,16 +98,18 @@ public class RecordOverlayFragment extends Fragment {
 
         // UGLY: XML에서 선언적으로 설정할 수가 없다.
         // Fragment XML에 onClick을 설정해도 무조건 Activity로 이벤트를 전달한다.
-        final ImageButton button = (ImageButton) v.findViewById(R.id.button_capture);
+        final ImageButton button = v.findViewById(R.id.button_capture);
         if (_captureType == CAPTURE_MOVIE) {
             button.setImageResource(R.drawable.ic_media_record);
         } else {
             button.setImageResource(R.drawable.ic_media_snapshot);
         }
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                onCaptureClick();
+        button.setOnClickListener(v1 -> {
+            if (SystemClock.elapsedRealtime() - mLastClickTime < 500) {
+                return;
             }
+            mLastClickTime = SystemClock.elapsedRealtime();
+            onCaptureClick();
         });
 
         final View recordInfo = v.findViewById(R.id.record_info);
@@ -116,7 +128,7 @@ public class RecordOverlayFragment extends Fragment {
         if (_captureType == CAPTURE_MOVIE) {
             View v = getView();
             if (v != null) {
-                final ImageButton button = (ImageButton) v.findViewById(R.id.button_capture);
+                final ImageButton button = v.findViewById(R.id.button_capture);
                 if (button != null) {
                     button.setImageResource(recording ? R.drawable.ic_media_stop : R.drawable.ic_media_record);
                 }

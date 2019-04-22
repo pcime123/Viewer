@@ -7,20 +7,20 @@ import java.util.Arrays;
 
 /**
  * Created by trlim on 2016. 3. 2..
- *
+ * <p>
  * MCU로부터의 명령을 받아 분석하는 일을 한다.
  */
 public abstract class McuCommandListener implements McuControl.OnReceiveBufferListener {
     private byte[] _buf;
     private int _len;
 
-    public McuCommandListener() {
+    McuCommandListener() {
         _buf = null;
         _len = 0;
     }
 
     @Override
-    public void onReceiveBuffer(ByteBuffer buffer, int length) throws InterruptedException {
+    public void onReceiveBuffer(ByteBuffer buffer, int length) {
         byte[] buf = new byte[_len + length];
         if (_buf != null) {
             System.arraycopy(_buf, 0, buf, 0, _len);
@@ -37,31 +37,32 @@ public abstract class McuCommandListener implements McuControl.OnReceiveBufferLi
                 _len--;
                 continue;
             }
-            if (_buf[ptr+1] != (byte) 0x00) {
+            if (_buf[ptr + 1] != (byte) 0x00) {
                 ptr++;
                 _len--;
                 continue;
             }
 
-            int cmd  = _buf[ptr+2];
+            int cmd = _buf[ptr + 2];
             if (cmd < 0) {
                 cmd += 256;
             }
-            int data = _buf[ptr+3];
+            int data = _buf[ptr + 3];
             if (data < 0) {
                 data += 256;
             }
-            int csum = _buf[ptr+4];
+            int csum = _buf[ptr + 4];
             if (csum < 0) {
                 csum += 256;
             }
 
             if (csum == ((cmd + data) & 0xFF)) {
                 onMcuCommand((char) cmd, (char) data);
-//                Log.d("MCU", "onMcuCommand: " + cmd + " ," + data);
-//            } else {
-//                Log.e("MCU", "invalid cmd " + cmd + "," + data + "," + csum);
+//                Log.d("Viewer MCU", "onMcuCommand: " + _buf[ptr] + "," + _buf[ptr + 1] + "," + cmd + "," + data + "," + csum);
             }
+//            else {
+//                Log.e("Viewer MCU", "invalid cmd " + _buf[ptr] + "," + _buf[ptr + 1] + "," + cmd + "," + data + "," + csum);
+//            }
 
             ptr += 5;
             _len -= 5;

@@ -20,6 +20,7 @@ public class VideoSource {
     public static final String SDI = "SDI";
     public static final String HDMI = "HDMI";
     public static final String AUTO = "AUTO";
+    public static final String HOME = "HOME";
 
     public static final String AHD = "AHD";
     public static final String TVI = "TVI";
@@ -51,7 +52,6 @@ public class VideoSource {
 
     /**
      * @param sourceId Video source name
-     * @throws IOException
      */
     public VideoSource(final String sourceId) {
             _sourceId = sourceId;
@@ -84,7 +84,6 @@ public class VideoSource {
      * <p>
      * Call this method in your apps onResume().
      *
-     * @throws IOException
      */
     public void acquire() throws IOException {
         switch (_sourceId) {
@@ -113,13 +112,12 @@ public class VideoSource {
      * <p>
      * Call this method in your apps onPause().
      *
-     * @throws IOException
      */
     public void release() throws IOException {
         setDefaults();
     }
 
-    public void close() throws IOException {
+    public void close() {
 //        _vpCtrlPin = null;
 //        _pseEnPin = null;
 //        _adcSelPin = null;
@@ -132,17 +130,17 @@ public class VideoSource {
         dispFileDescriptor = null;
     }
 
-    private void setDefaults() throws IOException {
+    private void setDefaults() {
 //        _vpCtrlPin.setLevel(true);
 //        _pseEnPin.setLevel(false);
 //        _adcSelPin.setLevel(false);
     }
 
-    public void set48vPowerOn() throws IOException {
+    public void set48vPowerOn() {
 //        _vpCtrlPin.setLevel(false);
     }
 
-    public void set48vPowerOff() throws IOException {
+    public void set48vPowerOff() {
 //        _vpCtrlPin.setLevel(true);
     }
 

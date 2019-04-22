@@ -53,6 +53,12 @@ public class PtzOverlayFragment extends Fragment
     private int mUtcType;
     private int mControlMode;
     private int mPtzMode;
+    private int iProtocolSelection;
+    private int iAddressSelection;
+    private int iBaudrateSelection;
+
+    private TextView mMode;
+    private String getMode = "";
 
 
     private Spinner spinner_protocol, spinner_address, spinner_baudrate;
@@ -62,6 +68,8 @@ public class PtzOverlayFragment extends Fragment
 
     private int protocolKey;
     private int labelKey;
+    private String key = "ptzOverlay";
+
 
     public PtzOverlayFragment() {
         // Required empty public constructor
@@ -94,9 +102,16 @@ public class PtzOverlayFragment extends Fragment
 
         View view = inflater.inflate(R.layout.fragment_ptz_overlay, container, false);
 
+        mMode = view.findViewById(R.id.value_mode);
+
+
         spinner_protocol = view.findViewById(R.id.value_protocol);
         spinner_address = view.findViewById(R.id.value_address);
         spinner_baudrate = view.findViewById(R.id.value_baudrate);
+
+        iProtocolSelection = spinner_protocol.getSelectedItemPosition();
+        iAddressSelection = spinner_address.getSelectedItemPosition();
+        iBaudrateSelection = spinner_baudrate.getSelectedItemPosition();
 
         spinner_protocol.setFocusable(false);
         spinner_protocol.setFocusableInTouchMode(false);
@@ -161,17 +176,20 @@ public class PtzOverlayFragment extends Fragment
     }
 
     public void reCheck(SharedPreferences sharedPreferences) {
-        mUtcType = getUtcMode(sharedPreferences);
+        if (mUtcType != 0) {
+            mUtcType = getUtcMode(sharedPreferences);
+        }
     }
-
 
 
     @Override
     public void onResume() {
         super.onResume();
+//        Log.d(TAG, "onResume");
+        setControlFragment(mControlMode);
 
         // 모든 설정의 초기값을 표시
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext()));
         for (String key : sharedPreferences.getAll().keySet()) {
             onSharedPreferenceChanged(sharedPreferences, key);
             protocolSet();
@@ -180,17 +198,22 @@ public class PtzOverlayFragment extends Fragment
         }
 
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        putIntegerPreference(sharedPreferences, key, 1);
 
-        setControlFragment(mControlMode);
     }
 
     @Override
     public void onPause() {
+//        Log.d(TAG, "onPause");
+        super.onPause();
+
         // 제어 fragment를 제거하는 효과가 있음
         setControlMode(PtzOverlayFragment.CONTROL_NONE);
 
-        PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
-        super.onPause();
+        PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getContext())).unregisterOnSharedPreferenceChangeListener(this);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        putIntegerPreference(sharedPreferences, key, 0);
+
     }
 
     public void setControlMode(int controlMode) {
@@ -204,7 +227,7 @@ public class PtzOverlayFragment extends Fragment
 
     private void setContentsFragment(int mode) {
         Fragment contentsFragment = null;
-
+//        Log.d(TAG, "setContentsFragment: " + mode);
         switch (mode) {
             case CONTROL_RX:
                 contentsFragment = PtzRxContentsFragment.newInstance();
@@ -220,10 +243,12 @@ public class PtzOverlayFragment extends Fragment
 
         FragmentManager fragmentManager = getFragmentManager();
         if (contentsFragment != null) {
+            assert fragmentManager != null;
             fragmentManager.beginTransaction()
                     .replace(R.id.ptz_contents, contentsFragment, CONTENTS_FRAGMENT_TAG)
                     .commit();
         } else {
+            assert fragmentManager != null;
             contentsFragment = fragmentManager.findFragmentByTag(CONTENTS_FRAGMENT_TAG);
             if (contentsFragment != null) {
                 fragmentManager.beginTransaction().remove(contentsFragment).commit();
@@ -262,15 +287,18 @@ public class PtzOverlayFragment extends Fragment
         FragmentManager fragmentManager = getFragmentManager();
 
         if (controlFragment != null) {
+            assert fragmentManager != null;
             fragmentManager.beginTransaction()
                     .replace(R.id.ptz_controls, controlFragment, PtzControlFragment.TAG)
                     .commit();
         } else {
+            assert fragmentManager != null;
             controlFragment = fragmentManager.findFragmentByTag(PtzControlFragment.TAG);
             if (controlFragment != null) {
                 fragmentManager.beginTransaction().remove(controlFragment).commit();
             }
         }
+
     }
 
     @Override
@@ -283,6 +311,7 @@ public class PtzOverlayFragment extends Fragment
 
         TextView textView;
 
+
         if ((isUtcSupported() && key.equals(getString(R.string.pref_ptz_mode_utc))) ||
                 (!isUtcSupported() && key.equals(getString(R.string.pref_ptz_mode_sdi)))) {
             final String[] ptzModes = getResources().getStringArray(isUtcSupported() ? R.array.ptz_modes_utc : R.array.ptz_modes_sdi);
@@ -292,7 +321,8 @@ public class PtzOverlayFragment extends Fragment
             if (value != null) {
                 mPtzMode = Integer.parseInt(value);
                 textView.setText(ptzModes[mPtzMode]);
-
+                getMode = ptzModes[mPtzMode];
+//                Log.d(TAG, "onSharedPreferenceChanged mode: " + mPtzMode);
                 switch (mPtzMode) {
                     case PtzMode.TX:
                     case PtzMode.UTC:
@@ -307,10 +337,10 @@ public class PtzOverlayFragment extends Fragment
                         setControlMode(PtzOverlayFragment.CONTROL_ANALYZER);
                         break;
                 }
-
+//                Log.i(TAG, "Update 1 " + isUtcSupported() + "   " + getMode);
                 updateProtocol(sharedPreferences, mPtzMode == PtzMode.UTC);
-                updateAddress(sharedPreferences, mPtzMode == PtzMode.UTC);
-                updateBaudRate(sharedPreferences, mPtzMode == PtzMode.UTC);
+                updateAddress(sharedPreferences, isUtcSupported(), getMode);
+                updateBaudRate(sharedPreferences, isUtcSupported(), getMode);
             }
         } else if (key.equals(getString(R.string.pref_ptz_protocol))) {
             updateProtocol(sharedPreferences, false);
@@ -318,22 +348,31 @@ public class PtzOverlayFragment extends Fragment
                 || key.equals(getString(R.string.pref_utc_protocol_tvi))
                 || key.equals(getString(R.string.pref_utc_protocol_ahd))
                 || key.equals(getString(R.string.pref_utc_protocol_cvi))) {
-            int ptzMode = Integer.parseInt(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null));
+            int ptzMode = Integer.parseInt(Objects.requireNonNull(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null)));
             updateProtocol(sharedPreferences, ptzMode == PtzMode.UTC);
         } else if (key.equals(getString(R.string.pref_ptz_address))) {
-            int ptzMode = Integer.parseInt(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null));
-            updateAddress(sharedPreferences, ptzMode == PtzMode.UTC && mUtcType != UtcProtocol.TYPE_CVI);
+            int ptzMode = Integer.parseInt(Objects.requireNonNull(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null)));
+            updateAddress(sharedPreferences, isUtcSupported(), getMode);
+//            Log.i(TAG, "Update 2  " + isUtcSupported() + "   " + getMode);
+
+
         } else if (key.equals(getString(R.string.pref_ptz_baudrate))) {
-            int ptzMode = Integer.parseInt(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null));
-            updateBaudRate(sharedPreferences, ptzMode == PtzMode.UTC);
-        } else if (key.equals(getString(R.string.pref_ptz_termination))) {
-            //Log.d(TAG, key + " = " + sharedPreferences.getBoolean(key, false));
-        } else  if (key.equals(getString(R.string.pref_utc_mode))) {
+            int ptzMode = Integer.parseInt(Objects.requireNonNull(sharedPreferences.getString(isUtcSupported() ? "ptz_mode_utc" : "ptz_mode_sdi", null)));
+            updateBaudRate(sharedPreferences, isUtcSupported(), getMode);
+//        }
+//        else if (key.equals(getString(R.string.pref_ptz_termination))) {
+//            Log.d(TAG, key + " = " + sharedPreferences.getBoolean(key, false));
+        } else if (key.equals(getString(R.string.pref_utc_mode))) {
             reCheck(sharedPreferences);
+//            Log.i(TAG, "Update 3  " + isUtcSupported() + "   " + getMode);
+
             updateProtocol(sharedPreferences, mPtzMode == PtzMode.UTC);
-            updateAddress(sharedPreferences, mPtzMode == PtzMode.UTC);
-            updateBaudRate(sharedPreferences, mPtzMode == PtzMode.UTC);
+            updateAddress(sharedPreferences, isUtcSupported(), getMode);
+            updateBaudRate(sharedPreferences, isUtcSupported(), getMode);
+//            Log.i(TAG, "Update 3 " + isUtcSupported());
+
         }
+
 
     }
 
@@ -377,16 +416,16 @@ public class PtzOverlayFragment extends Fragment
             final String value = sharedPreferences.getString(getString(protocolKey), null);
             if (value != null) {
                 final String[] ptzProtocols = getResources().getStringArray(labelKey);
-                Log.d(TAG, "protocolkey: " + Arrays.toString(ptzProtocols));
+//                Log.d(TAG, "protocolkey: " + Arrays.toString(ptzProtocols));
 
                 int index = Integer.parseInt(value);
                 if (index < ptzProtocols.length) {
-                    ArrayAdapter<String> adapter_protocol = new ArrayAdapter<>(getActivity(), R.layout.spinner_normal, ptzProtocols);
+                    ArrayAdapter<String> adapter_protocol = new ArrayAdapter<>(Objects.requireNonNull(getActivity()), R.layout.spinner_normal, ptzProtocols);
                     adapter_protocol.setDropDownViewResource(R.layout.spinner_dropdown);
                     spinner_protocol.setAdapter(adapter_protocol);
 //                    textView.setText(ptzProtocols[index]);
                     spinner_protocol.setSelection(index);
-
+//                    Log.d(TAG, "Test: " + spinner_protocol.getSelectedItem());
 
                 }
             } else {
@@ -404,17 +443,17 @@ public class PtzOverlayFragment extends Fragment
 
                 int item = spinner_protocol.getSelectedItemPosition();
                 final String key = getString(protocolKey);
-//                Log.d(TAG, "Protocol: " + key + " Item: " + item);
 //                changePtzProtocol(item);
-
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
                 putIntegerPreference(sharedPreferences, key, item);
 
-                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                MainActivity.PtzSettings ptzSettings =  ((MainActivity)MainActivity.mContext).getPtzSettings(pref);
-                ((MainActivity)MainActivity.mContext).changePtzMode(ptzSettings);
-
-
+                if (iProtocolSelection != -1) {
+                    if (iProtocolSelection != position) {
+//                        Log.d(TAG, "PtzOverlayFragment protocolSet");
+                        changePtzMode();
+                    }
+                }
+                iProtocolSelection = position;
             }
 
             @Override
@@ -425,12 +464,47 @@ public class PtzOverlayFragment extends Fragment
     }
 
 
-    private void updateAddress(SharedPreferences sharedPreferences, boolean forceDisable) {
+    private void updateAddress(SharedPreferences sharedPreferences, boolean forceDisable, String mode) {
 //        TextView textView = (TextView) view.findViewById(R.id.value_address);
 
+//        Log.d(TAG, "mControlMode: " + mControlMode);
         if (forceDisable || mControlMode == CONTROL_RX || mControlMode == CONTROL_ANALYZER) {
             spinner_address.setVisibility(View.INVISIBLE);
 //            textView.setText("-");
+            if (isUtcSupported() && !mode.equals("UTC") && !mode.equals("RS-485 RX") && !mode.equals("Analyze")) {
+                spinner_address.setVisibility(View.VISIBLE);
+
+                final String[] ptzAddress = getResources().getStringArray(R.array.ptz_address);
+                final String value = sharedPreferences.getString(getString(R.string.pref_ptz_address), null);
+//            Log.d(TAG, "Address: " + value);
+
+                if (value != null) {
+                    ArrayAdapter<String> adapter_address = new ArrayAdapter<String>(Objects.requireNonNull(getActivity()), R.layout.spinner_normal, ptzAddress) {
+
+                        @Override
+                        public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                            View view = super.getDropDownView(position, convertView, parent);
+                            TextView tv = (TextView) view;
+                            if (position == 0) {
+                                tv.setVisibility(View.GONE);
+                            } else {
+                                tv.setVisibility(View.VISIBLE);
+                            }
+                            return view;
+                        }
+                    };
+
+                    adapter_address.setDropDownViewResource(R.layout.spinner_dropdown);
+                    spinner_address.setAdapter(adapter_address);
+                    spinner_address.setSelection(Integer.parseInt(value));
+//  String format = getString(R.string.ptz_address_format);
+//                textView.setText(String.format(format, Integer.parseInt(value)));
+                } else {
+                    spinner_address.setVisibility(View.INVISIBLE);
+
+//                textView.setText("-");
+                }
+            }
         } else {
 
 
@@ -441,7 +515,7 @@ public class PtzOverlayFragment extends Fragment
 //            Log.d(TAG, "Address: " + value);
 
             if (value != null) {
-                ArrayAdapter<String> adapter_address = new ArrayAdapter<String>(getActivity(), R.layout.spinner_normal, ptzAddress) {
+                ArrayAdapter<String> adapter_address = new ArrayAdapter<String>(Objects.requireNonNull(getActivity()), R.layout.spinner_normal, ptzAddress) {
 
                     @Override
                     public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -478,10 +552,14 @@ public class PtzOverlayFragment extends Fragment
 
                 changePtzAddress(item);
 
-                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                MainActivity.PtzSettings ptzSettings =  ((MainActivity)MainActivity.mContext).getPtzSettings(pref);
-                ((MainActivity)MainActivity.mContext).changePtzMode(ptzSettings);
+                if (iAddressSelection != -1) {
+                    if (iAddressSelection != position) {
+                        changePtzMode();
+                        Log.d(TAG, "PtzOverlayFragment addressSet");
 
+                    }
+                }
+                iAddressSelection = position;
             }
 
             @Override
@@ -491,19 +569,32 @@ public class PtzOverlayFragment extends Fragment
         });
     }
 
-    private void updateBaudRate(SharedPreferences sharedPreferences, boolean forceDisable) {
+    private void updateBaudRate(SharedPreferences sharedPreferences, boolean forceDisable, String mode) {
 //        TextView textView = (TextView) view.findViewById(R.id.value_baudrate);
 
         if (forceDisable) {
             spinner_baudrate.setVisibility(View.INVISIBLE);
 //            textView.setText("-");
+            if (isUtcSupported() && !mode.equals("UTC")) {
+                spinner_baudrate.setVisibility(View.VISIBLE);
+
+                final String[] ptzBaudrates = getResources().getStringArray(R.array.ptz_baudrates);
+                final String value = sharedPreferences.getString(getString(R.string.pref_ptz_baudrate), null);
+                if (value != null) {
+                    ArrayAdapter<String> adapter_baudrate = new ArrayAdapter<>(Objects.requireNonNull(getActivity()), R.layout.spinner_normal, ptzBaudrates);
+                    adapter_baudrate.setDropDownViewResource(R.layout.spinner_dropdown);
+                    spinner_baudrate.setAdapter(adapter_baudrate);
+                    spinner_baudrate.setSelection(Integer.parseInt(value));
+//                textView.setText(ptzBaudrates[Integer.parseInt(value)]);
+                }
+            }
         } else {
             spinner_baudrate.setVisibility(View.VISIBLE);
 
             final String[] ptzBaudrates = getResources().getStringArray(R.array.ptz_baudrates);
             final String value = sharedPreferences.getString(getString(R.string.pref_ptz_baudrate), null);
             if (value != null) {
-                ArrayAdapter<String> adapter_baudrate = new ArrayAdapter<>(getActivity(), R.layout.spinner_normal, ptzBaudrates);
+                ArrayAdapter<String> adapter_baudrate = new ArrayAdapter<>(Objects.requireNonNull(getActivity()), R.layout.spinner_normal, ptzBaudrates);
                 adapter_baudrate.setDropDownViewResource(R.layout.spinner_dropdown);
                 spinner_baudrate.setAdapter(adapter_baudrate);
                 spinner_baudrate.setSelection(Integer.parseInt(value));
@@ -520,10 +611,14 @@ public class PtzOverlayFragment extends Fragment
                 int item = spinner_baudrate.getSelectedItemPosition();
                 changePtzBaudrate(item);
 
-                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                MainActivity.PtzSettings ptzSettings =  ((MainActivity)MainActivity.mContext).getPtzSettings(pref);
-                ((MainActivity)MainActivity.mContext).changePtzMode(ptzSettings);
+                if (iBaudrateSelection != -1) {
+                    if (iBaudrateSelection != position) {
+                        changePtzMode();
+                        Log.d(TAG, "PtzOverlayFragment baudrateSet");
 
+                    }
+                }
+                iBaudrateSelection = position;
             }
 
             @Override
@@ -547,26 +642,35 @@ public class PtzOverlayFragment extends Fragment
 
     private void changePtzProtocol(int item) {
         final String key = getString(R.string.pref_ptz_protocol);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
         putIntegerPreference(sharedPreferences, key, item);
     }
 
 
-
     private void changePtzAddress(int item) {
         final String key = getString(R.string.pref_ptz_address);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
         putIntegerPreference(sharedPreferences, key, item);
     }
 
     private void changePtzBaudrate(int item) {
         final String key = getString(R.string.pref_ptz_baudrate);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
         putIntegerPreference(sharedPreferences, key, item);
     }
 
     private int getUtcMode(SharedPreferences sharedPreferences) {
         return Integer.parseInt(sharedPreferences.getString(getString(R.string.pref_utc_mode), "0"));
+    }
+
+    private String getMode(SharedPreferences sharedPreferences) {
+        return sharedPreferences.getString("getMode", "0");
+    }
+
+    private void changePtzMode() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
+        MainActivity.PtzSettings ptzSettings = ((MainActivity) MainActivity.mContext).getPtzSettings(pref);
+        ((MainActivity) MainActivity.mContext).changePtzMode(ptzSettings, false);
     }
 
 

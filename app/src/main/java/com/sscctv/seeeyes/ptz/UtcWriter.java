@@ -2,6 +2,7 @@ package com.sscctv.seeeyes.ptz;
 
 import android.content.Context;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 
 import com.sscctv.seeeyes.video.AnalogInput;
 

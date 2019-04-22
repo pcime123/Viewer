@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:descendantFocusability="afterDescendants"
     android:id="@+id/fragment_ptz_overlay"
-
     tools:context=".PtzOverlayFragment">
 
     <LinearLayout
@@ -14,6 +13,7 @@
         android:layout_alignParentTop="true"
         android:background="@color/colorMenuBackground"
         android:orientation="horizontal"
+        android:focusable="true"
         android:paddingBottom="@dimen/ptz_label_padding"
         android:paddingLeft="@dimen/ptz_title_padding"
         android:paddingRight="@dimen/ptz_title_padding"

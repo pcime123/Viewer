@@ -8,13 +8,18 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import com.sscctv.seeeyesmonitor.MainActivity;
 import com.sscctv.seeeyesmonitor.R;
 
+
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -26,14 +31,15 @@ import java.util.TimerTask;
  * <p>
  * 카메라 입력 처리 등의 공통 작업을 맡는다
  */
+
 // Camera API는 camera2로 대체되었으나 API 17에서는 쓸 수가 없으므로 경고를 잠재운다
 @SuppressWarnings("deprecation")
 public abstract class CameraInput extends VideoInput {
-//        implements Camera.PreviewCallback {
+    //        implements Camera.PreviewCallback {
     private static final String TAG = "CameraInput";
     private static int re_width, re_height;
 
-    public Camera _camera;
+    private Camera _camera;
     private MediaRecorder _recorder;
     private String _outputPath;
     private String veryLongString;
@@ -65,19 +71,19 @@ public abstract class CameraInput extends VideoInput {
 //
 //    }
 
-    public static class Log {
-
-        public static void d(String TAG, String message) {
-            int maxLogSize = 2000;
-            for (int i = 0; i <= message.length() / maxLogSize; i++) {
-                int start = i * maxLogSize;
-                int end = (i + 1) * maxLogSize;
-                end = end > message.length() ? message.length() : end;
-                android.util.Log.d(TAG, message.substring(start, end));
-            }
-        }
-
-    }
+//    public static class Log {
+//
+//        public static void d(String TAG, String message) {
+//            int maxLogSize = 2000;
+//            for (int i = 0; i <= message.length() / maxLogSize; i++) {
+//                int start = i * maxLogSize;
+//                int end = (i + 1) * maxLogSize;
+//                end = end > message.length() ? message.length() : end;
+//                android.util.Log.d(TAG, message.substring(start, end));
+//            }
+//        }
+//
+//    }
 
     public int[] decodeYUV420SP(byte[] yuv420sp, int width, int height) {
         final int frameSize = width * height;
@@ -235,6 +241,7 @@ public abstract class CameraInput extends VideoInput {
     }
 
     public void startCameraInput() {
+//        Log.d(TAG, "_Camera: " + _camera);
         if (_camera != null) {
             //throw new IllegalStateException("Camera is already started");
 //            Log.e(TAG, "Camera is already started!!! - " + _camera);
@@ -244,26 +251,34 @@ public abstract class CameraInput extends VideoInput {
         }
 
         int numCameras = Camera.getNumberOfCameras();
+//        Log.d(TAG, "numCameras: " + numCameras);
 
         if (numCameras > 0) {
             if (getCameraId() < numCameras) {
 //                Log.d(TAG, "startCameraInput() " + _camera + " , " + getCameraId());
+                try {
+                    _camera = Camera.open(getCameraId());
 
-                _camera = Camera.open(getCameraId());
-
-                // get Camera parameters
-                Camera.Parameters params = _camera.getParameters();
-                for (int[] range : params.getSupportedPreviewFpsRange()) {
-//                    Log.i(TAG, "Camera Fps Range: " + range[0] + ", " + range[1]);
+                } catch (RuntimeException ex) {
+                    ex.printStackTrace();
+                    _camera.release();
+                    return;
                 }
+//                Log.d(TAG, "getParamsWidth: " + _camera.getParameters().getPreviewSize().width + " getParamsHeight: " + _camera.getParameters().getPreviewSize().height);
+//                Log.d(TAG, "Test: " + _camera.getParameters().getPreviewFormat());
+                // get Camera parameters
+//                Camera.Parameters params = _camera.getParameters();
+//                for (int[] range : params.getSupportedPreviewFpsRange()) {
+//                    Log.i(TAG, "Camera Fps Range: " + range[0] + ", " + range[1]);
+//                }
 
-                params.setPreviewFpsRange(5000, 5000);
-                params.setRecordingHint(false);
+//                params.setPreviewFpsRange(5000, 5000);
+//                params.setRecordingHint(false);
 
-                _camera.setParameters(params);
+//                _camera.setParameters(params);
 //                params.setPreviewFormat(ImageFormat.YUV_420_888);
 
-                params.setPreviewFormat(ImageFormat.RGB_565);
+//                params.setPreviewFormat(ImageFormat.RGB_565);
 //                _camera.setPreviewCallback(this);
 
             } else {
@@ -279,7 +294,8 @@ public abstract class CameraInput extends VideoInput {
                 android.util.Log.e(TAG, "onError: " + error + "  " + camera);
                 if (error == Camera.CAMERA_ERROR_SERVER_DIED) {
                     ((MainActivity) MainActivity.mContext).showRecordErrorDialog();
-
+                } else if (error == Camera.CAMERA_ERROR_UNKNOWN) {
+                    Log.d(TAG, "Camera setErrorCallback : Camera_ERROR_UNKNOWN");
                 }
 
             }
@@ -314,6 +330,8 @@ public abstract class CameraInput extends VideoInput {
                 // 6. Important: Call startPreview() to start updating the preview surface.
                 // Preview must be started before you can take a picture.
                 _camera.startPreview();
+
+
             }
         } catch (IOException | RuntimeException exception) {
 //            Log.e(TAG, "Error setting camera preview", exception);
@@ -352,21 +370,27 @@ public abstract class CameraInput extends VideoInput {
         camera.takePicture(cb::onShutter, (data, camera1)
                 -> cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_RAW, data, self), (data, camera13)
                 -> cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_POSTVIEW, data, self), (data, camera12)
-                -> { cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_JPEG, data, self);
+                -> {
+            cb.onSnapshotTaken(SnapshotCallback.SNAPSHOT_JPEG, data, self);
             restartPreview();
         });
     }
 
     @Override
     public boolean startRecording(String path) {
+//        Log.d(TAG, "CameraInput startRecording");
+
         if (!prepareVideoRecorder(path, hasAudio())) {
+
             _outputPath = null;
             return false;
         }
+//        Log.d(TAG, "CameraInput startRecording1");
 
         _outputPath = path;
 
         _recorder.start();
+//        Log.d(TAG, "CameraInput startRecording2");
 
         return true;
     }
@@ -376,8 +400,14 @@ public abstract class CameraInput extends VideoInput {
         String path = null;
 
         if (_recorder != null) {
-            _recorder.stop();
-
+            try {
+                _recorder.stop();
+            } catch (RuntimeException stopException) {
+                ((MainActivity) MainActivity.mContext).showRecordErrorDialog();
+//                ((MainActivity) MainActivity.mContext).showToast(R.string.stop_error);
+                ((MainActivity) MainActivity.mContext).deleteMediaToLibrary(_outputPath);
+            }
+            Log.d(TAG, "stopRecording stat: " + stat);
             releaseMediaRecorder();
             if (stat) stopCameraInput();
 
@@ -395,40 +425,69 @@ public abstract class CameraInput extends VideoInput {
     private boolean prepareVideoRecorder(String path, boolean hasAudio) {
         Camera camera = getCamera();
         Camera.Parameters parameters = camera.getParameters();
+        CamcorderProfile profile = getCamcorderProfile();
+//        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
 
-        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
-        profile.videoFrameWidth = 1920;
-        profile.videoFrameHeight = 1080;
+//        Log.w(TAG, "getMdinWidth: " + getMdinWidth() + " getMdinHeight: " + getMdinHeight() + " getMdinRate() : " + getMdinRate());
+        profile.videoFrameWidth = getMdinWidth();
+        profile.videoFrameHeight = getMdinHeight();
+//        profile.videoFrameRate = getMdinRate();
         parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
+//        parameters.setPreviewFrameRate(profile.videoFrameRate);
+        parameters.setPreviewFpsRange(15000, 30000);
         camera.setParameters(parameters);
+
+//        Log.d(TAG, "CameraInput prepareVideoRecorder");
+
+//        camera.setErrorCallback(new Camera.ErrorCallback() {
+//            @Override
+//            public void onError(int error, Camera camera) {
+////                android.util.Log.e(TAG, "Recording setErrorCallback: " + error + "  " + camera);
+//                ((MainActivity) MainActivity.mContext).stopRecording();
+//                ((MainActivity) MainActivity.mContext).showRecordErrorDialog();
+//
+//            }
+//        });
+
 
         MediaRecorder recorder = new MediaRecorder();
 
         // Step 1: Unlock and set camera to MediaRecorder
         try {
             camera.unlock();
-        } catch (RuntimeException e) {
-//            Log.e(TAG, "RuntimeException unlocking camera: " + e.getMessage());
+//            Log.d(TAG, "CameraInput prepareVideoRecorder1");
+
+        } catch (final Exception ex) {
+            ex.printStackTrace();
+//            Log.e(TAG, "CameraInput Preparing: " + ex.getMessage());
+//            recorder.release();
             return false;
         }
         recorder.setCamera(camera);
-
 
         // Step 2: Set sources
         if (hasAudio) {
             recorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
         }
         recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+
         recorder.setOutputFormat(profile.fileFormat);
-        recorder.setVideoFrameRate(profile.videoFrameRate);
+//        recorder.setVideoFrameRate(profile.videoFrameRate);
+        recorder.setVideoFrameRate(getMdinRate());
+        recorder.setVideoEncodingBitRate(profile.videoBitRate);
+        recorder.setVideoEncoder(profile.videoCodec);
+        recorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
+//        Log.d(TAG, "------------Video: " + profile.videoCodec);
+//        Log.d(TAG, "------------fileFormat: " + profile.fileFormat);
+
+//        Log.d(TAG, "getVideoFrameRate: " + profile.videoFrameRate);
 //        if ((getInput() == VIDEO_INPUT_CVI) || (getInput() == VIDEO_INPUT_CVBS))
-//            recorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
 //        if((getInput() == VIDEO_INPUT_CVI) || (getInput() == VIDEO_INPUT_CVBS))
 //            recorder.setVideoSize(profile.videoFrameWidth, getHeight());
 //        else
-        recorder.setVideoSize(1920, 1080);
-        recorder.setVideoEncodingBitRate(profile.videoBitRate);
-        recorder.setVideoEncoder(profile.videoCodec);
+//        recorder.setVideoSize(1920, 1080);
+//        Log.d(TAG, "getVideoFrameRate: " + profile.videoBitRate);
+
 //        noinspection StatementWithEmptyBody
         if (profile.quality >= CamcorderProfile.QUALITY_TIME_LAPSE_LOW &&
                 profile.quality <= CamcorderProfile.QUALITY_TIME_LAPSE_QVGA) {
@@ -440,32 +499,46 @@ public abstract class CameraInput extends VideoInput {
             recorder.setAudioChannels(profile.audioChannels);
             recorder.setAudioSamplingRate(profile.audioSampleRate);
             recorder.setAudioEncoder(profile.audioCodec);
+//            Log.d(TAG, "------------Auido: " + profile.audioCodec);
         }
 //        recorder.setProfile(profile);
-        recorder.setMaxFileSize(3500000000L);
+//        recorder.setMaxFileSize(3500000000L);
+//        recorder.setMaxDuration(10000);
 
         // Step 4: Set output file
         recorder.setOutputFile(path);
         // Step 5: Set the preview output
         recorder.setPreviewDisplay(getSurfaceHolder().getSurface());
-        _recorder = recorder;
-        _recorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
-            @Override
-            public void onInfo(MediaRecorder mr, int what, int extra) {
-                if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
-                    ((MainActivity) MainActivity.mContext).stopRecording();
-                    ((MainActivity) MainActivity.mContext).showToast(R.string.maxSize);
 
-                }
-//                android.util.Log.e(TAG, "onInfo: " + what + "  " + extra);
+        _recorder = recorder;
+
+        _recorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
+            @Override
+            public void onError(MediaRecorder mediaRecorder, int i, int i1) {
+                Log.e(TAG, "recording error: " + i + " , " + i1);
             }
         });
+//        _recorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+//            @Override
+//            public void onInfo(MediaRecorder mr, int what, int extra) {
+//                if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
+//                    ((MainActivity) MainActivity.mContext).stopRecording();
+//                    ((MainActivity) MainActivity.mContext).showToast(R.string.maxSize);
+//
+//                }
+////                android.util.Log.e(TAG, "onInfo: " + what + "  " + extra);
+//            }
+//        });
+        Log.i(TAG, "Recorder Configure. " +"FileFormat: "+ getCamcorderProfile().fileFormat + " FrameRate: " + getCamcorderProfile().videoFrameRate
+        + " EncodingBitRate: " + getCamcorderProfile().videoBitRate + " VideoEncoder: " + getCamcorderProfile().videoCodec + " Quality: " + getCamcorderProfile().quality);
+//        Log.d(TAG, "Recording Width: " + profile.videoFrameWidth + " Height: " + profile.videoFrameHeight + " Rate: " + profile.videoFrameRate);
+//        Log.d(TAG, "CameraInput prepareVideoRecorder2");
         // Step 6: Prepare configured MediaRecorder
         try {
             recorder.prepare();
 //            recorder.setMaxFileSize(50);
         } catch (IllegalStateException | IOException e) {
-            Log.d(TAG, "IllegalStateException preparing MediaRecorder: " + e.getMessage());
+            Log.e(TAG, "IllegalStateException preparing MediaRecorder: " + e.getMessage());
 //            stopRecording(false);
             releaseMediaRecorder();
             return false;
@@ -548,10 +621,10 @@ public abstract class CameraInput extends VideoInput {
         try {
             getCamera().reconnect();  // lock camera for later use
         } catch (IOException e) {
-//            Log.e(TAG, "IOException reconnecting camera: " + e.getMessage());
+            Log.e(TAG, "IOException reconnecting camera: " + e.getMessage());
         }
     }
-//
+
 //    public static void getMode(boolean mode){
 //
 //        if(mode) {
@@ -565,6 +638,54 @@ public abstract class CameraInput extends VideoInput {
 //        }
 //    }
 
+    private int getMdinWidth() {
+        int width = 0;
+        try {
+            FileInputStream file = new FileInputStream("/sys/class/vdp/mdin400/width");
+            byte[] value = new byte[16];
+            int length = file.read(value);
+            if (length > 0) {
+                width = Integer.parseInt(new String(value).substring(0, length));
+            }
+            file.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return width;
+    }
+
+    private int getMdinHeight() {
+        int height = 0;
+        try {
+            FileInputStream file = new FileInputStream("/sys/class/vdp/mdin400/height");
+            byte[] value = new byte[16];
+            int length = file.read(value);
+            if (length > 0) {
+                height = Integer.parseInt(new String(value).substring(0, length));
+            }
+            file.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return height;
+    }
+
+    private int getMdinRate() {
+        int rate = 0;
+        try {
+            FileInputStream file = new FileInputStream("/sys/class/vdp/mdin400/rate");
+            byte[] value = new byte[16];
+            int length = file.read(value);
+            if (length > 0) {
+                rate = Integer.parseInt(new String(value).substring(0, length));
+            }
+            file.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rate;
+    }
+
 
     public abstract int getWidth();
 
@@ -573,11 +694,17 @@ public abstract class CameraInput extends VideoInput {
     public abstract float getRate();
 
     protected CamcorderProfile getCamcorderProfile() {
-        int width = getWidth();
-        int height = getHeight();
-        int quality = CamcorderProfile.QUALITY_720P;
-        if ((width > 1280) && (height >= 720))
+        int width = getMdinWidth();
+        int height = getMdinHeight();
+//        Log.d(TAG, "Width: " + width + " Height: " + height);
+        int quality = CamcorderProfile.QUALITY_480P;
+        if ((width > 1280) && (height > 720)) {
             quality = CamcorderProfile.QUALITY_1080P;
+        } else if ((width > 720) && (height > 480)) {
+            quality = CamcorderProfile.QUALITY_720P;
+        }
         return CamcorderProfile.get(getCameraId(), quality);
     }
+
+
 }

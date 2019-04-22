@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     >
 
-
     <TextView
         android:id="@+id/video_info"
         android:layout_width="@dimen/video_info_width"
@@ -24,25 +23,136 @@
         android:typeface="monospace"
         android:visibility="invisible" />
 
-    <!--<Button-->
-        <!--android:id="@+id/test_button"-->
-        <!--android:layout_width="100dp"-->
-        <!--android:layout_height="50dp"-->
-        <!--android:layout_alignParentTop="true"-->
-        <!--android:layout_alignStart="@+id/video_info"-->
-        <!--android:layout_marginTop="157dp"-->
-        <!--android:onClick="onClick"-->
-        <!--android:text="TEST 1" />-->
+    <!--
+    <TextView
+        android:id="@+id/test"
+        android:layout_width="@dimen/video_info_width"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/video_info"
+        android:layout_marginTop="186dp"
+        android:background="@drawable/rounded_overlay"
+        android:lines="2"
+        android:padding="@dimen/overlay_content_padding"
+        android:textColor="@color/WhiteSmoke"
+        android:textSize="@dimen/text_size"
+        android:textStyle="bold"
+        android:typeface="monospace"
+        android:visibility="visible" />
 
-    <!--<Button-->
-        <!--android:id="@+id/test_button1"-->
-        <!--android:layout_width="100dp"-->
-        <!--android:layout_height="50dp"-->
-        <!--android:layout_alignParentTop="true"-->
-        <!--android:layout_alignStart="@+id/video_info"-->
-        <!--android:layout_marginTop="231dp"-->
-        <!--android:onClick="onClick"-->
-        <!--android:text="TEST 2" />-->
+    <Button
+        android:id="@+id/bt_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/test"
+        android:layout_alignTop="@+id/bt_play"
+        android:onClick="onRecord"
+        android:text="Record" />
+
+    <Button
+        android:id="@+id/bt_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/test"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="264dp"
+        android:onClick="onPlay"
+        android:text="Play" />
+
+    <Button
+        android:id="@+id/bt_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/test"
+        android:layout_marginTop="325dp"
+        android:onClick="onMode"
+        android:text="Mode" />
+
+-->
+    <LinearLayout
+        android:id="@+id/poc_overlay"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/rounded_overlay"
+        android:layout_marginTop="@dimen/overlay_vertical_margin"
+        android:padding="@dimen/overlay_padding_small"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentStart="false"
+        android:baselineAligned="false"
+        android:touchscreenBlocksFocus="false"
+        android:layout_alignParentBottom="false"
+        android:layout_alignWithParentIfMissing="false"
+        android:visibility="invisible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/poc_label" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/poc_state"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="280dp"
+        android:layout_height="120dp"
+        android:layout_centerInParent="true"
+        android:background="@color/colorOverlayBackground"
+        android:id="@+id/poc_dialog"
+        android:visibility="invisible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/poc_message"
+            android:layout_centerHorizontal="true"
+            android:layout_above="@+id/button_bar"
+            android:gravity="center" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?android:attr/buttonBarStyle"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/button_bar">
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/yes"
+                android:id="@+id/yes"
+                style="?android:attr/buttonBarButtonStyle"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_weight="1"
+                android:focusable="true"
+                android:focusableInTouchMode="true"/>
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/no"
+                android:text="@string/no"
+                style="?android:attr/buttonBarButtonStyle"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+
 
     <TextView
         android:id="@+id/test_view"
@@ -74,7 +184,7 @@
         android:onClick="onClick"
         android:paddingEnd="18dp"
         android:paddingStart="18dp"
-        android:text="TDM CH Select"
+        android:text="@string/tdm_ch_select"
         android:textColor="@color/WhiteSmoke"
         android:textSize="@dimen/text_size"
         android:textStyle="bold"
@@ -99,7 +209,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center"
-            android:text="TDM SLOT ID"
+            android:text="@string/tdm_slot_id"
             android:textColor="@color/WhiteSmoke"
             android:textSize="@dimen/text_size"
             android:textStyle="bold"
@@ -120,7 +230,8 @@
             android:nextFocusUp="@id/tdm_ch8"
             android:onClick="onClick"
             android:paddingStart="18dp"
-            android:text="CH 1: "
+            android:paddingEnd="0dp"
+            android:text="@string/ch_1"
 
             android:textSize="@dimen/text_size"
             android:typeface="monospace" />
@@ -137,7 +248,8 @@
             android:nextFocusRight="@id/tdm_ch2"
             android:onClick="onClick"
             android:paddingStart="18dp"
-            android:text="CH 2: "
+            android:paddingEnd="0dp"
+            android:text="@string/ch_2"
             android:textSize="@dimen/text_size"
             android:typeface="monospace" />
 
@@ -153,8 +265,8 @@
             android:nextFocusRight="@id/tdm_ch3"
             android:onClick="onClick"
             android:paddingStart="18dp"
-
-            android:text="CH 3: "
+            android:paddingEnd="0dp"
+            android:text="@string/ch_3"
             android:textSize="@dimen/text_size"
             android:typeface="monospace" />
 
@@ -170,7 +282,8 @@
             android:nextFocusRight="@id/tdm_ch4"
             android:onClick="onClick"
             android:paddingStart="18dp"
-            android:text="CH 4: "
+            android:paddingEnd="0dp"
+            android:text="@string/ch_4"
             android:textSize="@dimen/text_size"
             android:typeface="monospace" />
 
@@ -186,7 +299,8 @@
             android:nextFocusRight="@id/tdm_ch5"
             android:onClick="onClick"
             android:paddingStart="18dp"
-            android:text="CH 5: "
+            android:paddingEnd="0dp"
+            android:text="@string/ch_5"
             android:textSize="@dimen/text_size"
             android:typeface="monospace" />
 
@@ -202,7 +316,8 @@
             android:nextFocusRight="@id/tdm_ch6"
             android:onClick="onClick"
             android:paddingStart="18dp"
-            android:text="CH 6: "
+            android:paddingEnd="0dp"
+            android:text="@string/ch_6"
             android:textSize="@dimen/text_size"
             android:typeface="monospace" />
 
@@ -218,7 +333,8 @@
             android:nextFocusRight="@id/tdm_ch7"
             android:onClick="onClick"
             android:paddingStart="18dp"
-            android:text="CH 7: "
+            android:paddingEnd="0dp"
+            android:text="@string/ch_7"
             android:textSize="@dimen/text_size"
             android:typeface="monospace" />
 
@@ -236,7 +352,8 @@
             android:nextFocusUp="@id/tdm_ch7"
             android:onClick="onClick"
             android:paddingStart="18dp"
-            android:text="CH 8: "
+            android:paddingEnd="0dp"
+            android:text="@string/ch_8"
             android:textSize="@dimen/text_size"
             android:typeface="monospace" />
 
@@ -274,7 +391,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="false"
         android:layout_marginBottom="@dimen/overlay_vertical_margin"
-        android:layout_marginLeft="@dimen/overlay_horizontal_margin"
+        android:layout_marginStart="@dimen/overlay_horizontal_margin"
         android:background="@drawable/rounded_overlay"
         android:orientation="vertical"
         android:padding="@dimen/overlay_content_padding"

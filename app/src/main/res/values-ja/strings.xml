@@ -101,11 +101,12 @@
     <string name="msg_not_support_recording">録画を対応しない解像度です。</string>
     <string name="pref_view_change">画面比率</string>
     <string name="please_wait">少々お待ちください…</string>
-    <string name="please_wait_main">進行中です...</string>
+    <string name="please_wait_main">進行中です…</string>
     <string name="label_recording_resolution">緑化解像度</string>
     <string name="storage">ストレージ ：</string>
     <string name="poc_pse_support">PoEが動作しています。PoEをOFFにした後、再試行してください。</string>
     <string name="maxSize">録画ファイルは最大3Gまで制作可能なため、録画を終了します。</string>
     <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
+    <string name="stop_error">不明な理由で録画ファイル生成が出来ませんでした。入力信号と保存装置の状態をもう一度確認し、再度お試しください。</string>
 
 </resources>

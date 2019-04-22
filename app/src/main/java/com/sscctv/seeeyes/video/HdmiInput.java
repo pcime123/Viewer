@@ -3,6 +3,7 @@ package com.sscctv.seeeyes.video;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceView;
 
 import com.sscctv.seeeyes.SysFsMonitor;
@@ -31,6 +32,7 @@ public class HdmiInput extends CameraInput {
         mSignalMonitor = new SysFsMonitor("/sys/class/mhl/sii9293/signal");
 
 //        setMode(true);
+        HdmiInput.disable();
         AnalogInput.disable();
         SdiInput.disable();
     }
@@ -49,57 +51,56 @@ public class HdmiInput extends CameraInput {
         try {
             //mForceNotifySignalChange = true;
 
-            mSignalMonitor.start(new SysFsMonitor.AttributeChangeHandler() {
-                @Override
-                public void onAttributeChange(RandomAccessFile file) {
-                    byte[] value = new byte[16];
-                    int length = 0;
-                    try {
-                        length = file.read(value);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    if (length > 0) {
-                        String signal = new String(value).substring(0, length);
+            mSignalMonitor.start(file -> {
+                byte[] value = new byte[16];
+                int length = 0;
+                try {
+                    length = file.read(value);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (length > 0) {
+                    String signal = new String(value).substring(0, length);
 
-                        if (!hasSignal()) {
+                    if (!hasSignal()) {
 //                            Log.d(TAG, "Completely No Signal");
-                            signal = "nosignal";
-                        }
+                        signal = "nosignal";
+                    }
 
-                        switch (signal) {
-                            case "nosignal":
-                                Log.d(TAG, "No Signal");
-                                notifySignalChange(false, 0, 0, '?', 0.0F, 0,253);
-                                if(!isRecording()) {
-                                    //stopPreview();
-                                    stopCameraInput();
-                                }
+                    switch (signal) {
+                        case "nosignal":
+                            Log.d(TAG, "HDMI Input = " + signal);
 
-                                //mForceNotifySignalChange = false;
-                                break;
+                            notifySignalChange(false, 0, 0, '?', 0.0F, 0,253);
+                            if(!isRecording()) {
+                                stopPreview();
+                                stopCameraInput();
+                            }
 
-                            case "changed":
-                                Log.d(TAG, "signal = " + signal);
+                            //mForceNotifySignalChange = false;
+                            break;
 
-                                //if (getCamera() != null)    stopCameraInput();
-                                startCameraInput();
-                                startPreview();
+                        case "changed":
+                            Log.d(TAG, "HDMI Input = " + signal);
+
+                            //if (getCamera() != null)    stopCameraInput();
+                            startCameraInput();
+                            startPreview();
+                            notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), 0,253);
+
+                            //mForceNotifySignalChange = false;
+                            break;
+
+                        default:
+                            Log.d(TAG, "HDMI Input = " + signal);
+                            //if (mForceNotifySignalChange) {
                                 notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), 0,253);
 
+                                //stopAndStartPreview();
+
                                 //mForceNotifySignalChange = false;
-                                break;
-
-                            default:
-                                //if (mForceNotifySignalChange) {
-                                    notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), 0,253);
-
-                                    //stopAndStartPreview();
-
-                                    //mForceNotifySignalChange = false;
-                                //}
-                                break;
-                        }
+                            //}
+                            break;
                     }
                 }
             });
@@ -188,7 +189,7 @@ public class HdmiInput extends CameraInput {
         return height;
     }
 
-    public char getScan() {
+    private char getScan() {
         char scan = '?';
         try {
             FileInputStream file = new FileInputStream("/sys/class/mhl/sii9293/rate");
@@ -216,10 +217,10 @@ public class HdmiInput extends CameraInput {
         return rate;
     }
 
-    @Override
-    protected CamcorderProfile getCamcorderProfile() {
-        return CamcorderProfile.get(getCameraId(), CamcorderProfile.QUALITY_HIGH);
-    }
+//    @Override
+//    protected CamcorderProfile getCamcorderProfile() {
+//        return CamcorderProfile.get(getCameraId(), CamcorderProfile.QUALITY_HIGH);
+//    }
 
 
 }

@@ -5,6 +5,10 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 /**
  * Created by trlim on 2015. 12. 7..
  * <p>
@@ -13,10 +17,10 @@ import android.view.SurfaceView;
 public abstract class VideoInput implements SurfaceHolder.Callback{
     private static final String TAG = "VideoInput";
 
-    public final static int VIDEO_INPUT_NONE = -1;
-    public final static int VIDEO_INPUT_HDMI = 0;
-    public final static int VIDEO_INPUT_SDI = 0;
-    public final static int VIDEO_INPUT_AUTO = 0;
+    final static int VIDEO_INPUT_NONE = -1;
+    final static int VIDEO_INPUT_HDMI = 0;
+    final static int VIDEO_INPUT_SDI = 0;
+    final static int VIDEO_INPUT_AUTO = 0;
 
     private static final int SYSTEM_UNKNOWN = -1;
     private static final int SYSTEM_NTSC = 0;
@@ -66,7 +70,7 @@ public abstract class VideoInput implements SurfaceHolder.Callback{
 
     public static int getSystem(SignalInfo signalInfo) {
         // NTSC/PAL을 해상도로 구분한다.
-        if (signalInfo.signal && signalInfo.width == 1920 && signalInfo.scan == 'i') {
+        if (signalInfo.signal && signalInfo.width == 720 && signalInfo.scan == 'i') {
             if (signalInfo.height == 480) {
                 return SYSTEM_NTSC;
             } else if (signalInfo.height == 576) {
@@ -183,4 +187,5 @@ public abstract class VideoInput implements SurfaceHolder.Callback{
             _listner.onSignalChange(new SignalInfo(signal, width, height, scan, rate, mode, std));
         }
     }
+
 }

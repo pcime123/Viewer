@@ -98,12 +98,13 @@
     <string name="msg_not_support_recording">I\'m sorry. Recording is not supported resolution.</string>
     <string name="pref_view_change">Aspect ratio</string>
     <string name="please_wait">Please wait…</string>
-    <string name="please_wait_main">Loading...</string>
+    <string name="please_wait_main">Loading…</string>
     <string name="label_recording_resolution">Recording resolution</string>
     <string name="storage">Storage :</string>
     <string name="poc_pse_support">PoE is operating. Please try after ending PoE.</string>
     <string name="maxSize">Recording files can be generated up to 3G, and recording is ended.</string>
     <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
     <string name="ptz_mode_ucc">UCC</string>
+    <string name="stop_error">Failed to create recording file for unknown reason. Please try again after checking the input signal and storage device status.</string>
 
 </resources>

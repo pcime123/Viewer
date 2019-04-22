@@ -3,6 +3,7 @@ package com.sscctv.seeeyes.video;
 import android.content.Context;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceView;
 
 import com.sscctv.seeeyes.SysFsMonitor;
@@ -33,6 +34,7 @@ public class AnalogInput extends CameraInput {
         mSignalMonitor = new SysFsMonitor("/sys/class/misc/tp28xx/signal");
 
         //setMode(VIDEO_INPUT_NONE);
+            AnalogInput.disable();
         HdmiInput.disable();
         SdiInput.disable();
     }
@@ -51,54 +53,55 @@ public class AnalogInput extends CameraInput {
         try {
             //mForceNotifySignalChange = true;
 
-            mSignalMonitor.start(new SysFsMonitor.AttributeChangeHandler() {
-                @Override
-                public void onAttributeChange(RandomAccessFile file) {
+            mSignalMonitor.start(file -> {
 //                    Log.d(TAG, "mSignalMonitor Start");
 
-                    byte[] value = new byte[16];
-                    int length = 0;
-                    try {
-                        length = file.read(value);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    if (length > 0) {
-                        String signal = new String(value).substring(0, length);
+                byte[] value = new byte[16];
+                int length = 0;
+                try {
+                    length = file.read(value);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (length > 0) {
+                    String signal = new String(value).substring(0, length);
 //                        Log.d(TAG, "What Signal = " + signal);
 
-                        switch (signal) {
-                            case "nosignal":
-                                notifySignalChange(false, 0, 0, '?', 0.0F, 0xff, 0xff);
-                                if(!isRecording()) {
-                                    //stopPreview();
-                                    stopCameraInput();
-                                }
+                    switch (signal) {
+                        case "nosignal":
+                            Log.d(TAG, "Analog Input = " + signal);
 
-                                //mForceNotifySignalChange = false;
-                                break;
+                            notifySignalChange(false, 0, 0, '?', 0.0F, 0xff, 0xff);
+                            if(!isRecording()) {
+                                stopPreview();
+                                stopCameraInput();
+                            }
 
-                            case "changed":
-                                //Log.d(TAG, "signal = " + signal);
+                            //mForceNotifySignalChange = false;
+                            break;
 
-                                //if (getCamera() != null)    stopCameraInput();
-                                startCameraInput();
-                                startPreview();
+                        case "changed":
+                            Log.d(TAG, "Analog Input = " + signal);
+
+                            //if (getCamera() != null)    stopCameraInput();
+                            startCameraInput();
+                            startPreview();
+                            notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), getMode(), getStd());
+
+                            //mForceNotifySignalChange = false;
+                            break;
+
+                        default:
+                            Log.d(TAG, "AnalogInput = " + signal);
+
+                            //if (mForceNotifySignalChange) {
                                 notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), getMode(), getStd());
 
+                                //stopAndStartPreview();
+
                                 //mForceNotifySignalChange = false;
-                                break;
-
-                            default:
-                                //if (mForceNotifySignalChange) {
-                                    notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), getMode(), getStd());
-
-                                    //stopAndStartPreview();
-
-                                    //mForceNotifySignalChange = false;
-                                //}
-                                break;
-                        }
+                            //}
+                            break;
                     }
                 }
             });
@@ -186,7 +189,7 @@ public class AnalogInput extends CameraInput {
         return height;
     }
 
-    public char getScan() {
+    private char getScan() {
         char scan = '?';
         try {
             FileInputStream file = new FileInputStream("/sys/class/misc/tp28xx/rate");

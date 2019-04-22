@@ -54,7 +54,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     private int mUtcType;
     private int mReCheck;
     private String mPtzModeKey;
-
+    private String mode;
     private PreferenceManager mPreferenceManager;
     private Preference mMode;
     private Preference mPtzProtocol;
@@ -62,12 +62,16 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     private NumberPickerPreference mAddress;
     private Preference mBaudRate;
     private SwitchPreference mTermination;
+    private static final String OVERLAY_FRAGMENT_TAG = "overlay_fragment";
 
     private SharedPreferences mSharedPrefs;
 
     private ListView mListView;
     private PtzMenuAdapter mAdapter;
     private boolean stat;
+    private int iTitleSelection;
+    private String doFirst_value;
+
 
     public PtzMenuFragment() {
         // Required empty public constructor
@@ -100,6 +104,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
         if (getArguments() != null) {
             mUtcType = getArguments().getInt(ARG_UTC_TYPE, UtcProtocol.TYPE_NONE);
             mPtzModeKey = getString(isUtcSupported() ? R.string.pref_ptz_mode_utc : R.string.pref_ptz_mode_sdi);
+//            Log.d(TAG, "PtzModeKey: " + mPtzModeKey + " isUtcSupported: " + isUtcSupported());
 
             mPreferenceManager = new PreferenceManager(Objects.requireNonNull(getContext()));
 
@@ -126,6 +131,8 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                 case UtcProtocol.TYPE_CVI:
                     mUtcProtocol = preferenceScreen.findPreference(getString(R.string.pref_utc_protocol_cvi));
                     break;
+
+
             }
 
             mAddress = (NumberPickerPreference) preferenceScreen.findPreference(getString(R.string.pref_ptz_address));
@@ -133,19 +140,41 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
             mTermination = (SwitchPreference) preferenceScreen.findPreference(getString(R.string.pref_ptz_termination));
 
             mSharedPrefs = mPreferenceManager.getSharedPreferences();
+
         }
     }
-    public void reCheck(SharedPreferences sharedPreferences) {
-        mUtcType = getUtcMode(sharedPreferences);
 
+    private void doFirst() {
+        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
+
+        doFirst_value = mSharedPrefs.getString("default_utc", "0");
+        Log.d(TAG, "doFirst0: " + doFirst_value);
+
+        if (doFirst_value.equals("0")) {
+            putIntegerPreference(mSharedPrefs, "default_utc", "1");
+
+        }
+
+
+    }
+
+    public void reCheck(SharedPreferences sharedPreferences) {
+//        mUtcType = getUtcMode(sharedPreferences);
+        if (mUtcType != 0) {
+            mUtcType = getUtcMode(sharedPreferences);
+        }
         mSharedPrefs.registerOnSharedPreferenceChangeListener(this);
         mPreferenceManager.setOnDisplayPreferenceDialogListener(this);
 
+
+        assert getFragmentManager() != null;
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.detach(this).attach(this).commit();
 
-        Log.d(TAG, "reCheck: " + getUtcMode(sharedPreferences));
+//        Log.d(TAG, "reCheck: " + getUtcMode(sharedPreferences));
     }
+
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -153,7 +182,6 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
         View view = inflater.inflate(R.layout.fragment_ptz_menu, container, false);
 
         mListView = view.findViewById(R.id.list);
-
         TextView header = (TextView) inflater.inflate(R.layout.preference_header, mListView, false);
 
         header.setText(isUtcSupported() ? R.string.category_ptz_utc : R.string.category_ptz);
@@ -289,7 +317,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                         case PtzMode.ANALYZER:
                             return false;
                         case PtzMode.UTC:
-                            return false;
+                            return !isUtcSupported();
                     }
                     break;
 
@@ -302,7 +330,8 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                         case PtzMode.ANALYZER:
                             return true;
                         case PtzMode.UTC:
-                            return false;
+                            return !isUtcSupported();
+
                     }
                     break;
 
@@ -377,6 +406,23 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                     title = R.string.label_mode;
                     final String[] ptzModes = getResources().getStringArray(isUtcSupported() ? R.array.ptz_modes_utc : R.array.ptz_modes_sdi);
                     value = ptzModes[getPtzMode()];
+//
+                    if (iTitleSelection != -1) {
+                        if (iTitleSelection != position) {
+//                            if(value.equals("RS-485 RX")){
+//                                setControlMode(4);
+//                            } else if(value.equals("Analyze")) {
+//                                setControlMode(5);
+//                            }
+                            Log.d(TAG, "PtzMenuFragment mode");
+                            changePtzMode();
+                        }
+                    }
+                    iTitleSelection = position;
+
+//                    Log.d(TAG, "Title : " + value);
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
+                    putIntegerPreference(sharedPreferences, "getMode", mode);
                     stat = value.equals("Analyze");
                     break;
 
@@ -393,11 +439,20 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                             case UtcProtocol.TYPE_TVI:
                                 final String[] tviProtocols = getResources().getStringArray(R.array.utc_protocols_tvi);
                                 value = tviProtocols[Integer.parseInt(mSharedPrefs.getString(getString(R.string.pref_utc_protocol_tvi), "0"))];
+
                                 break;
 
                             case UtcProtocol.TYPE_CVI:
                                 final String[] cviProtocols = getResources().getStringArray(R.array.utc_protocols_cvi);
-                                value = cviProtocols[Integer.parseInt(mSharedPrefs.getString(getString(R.string.pref_utc_protocol_cvi), "0"))];
+                                doFirst_value = mSharedPrefs.getString("default_utc", "0");
+
+                                if (doFirst_value.equals("0")) {
+                                    value = cviProtocols[2];
+                                    putIntegerPreference(mSharedPrefs, "utc_protocol_cvi", "2");
+                                    putIntegerPreference(mSharedPrefs, "default_utc", "1");
+                                } else {
+                                    value = cviProtocols[Integer.parseInt(mSharedPrefs.getString(getString(R.string.pref_utc_protocol_cvi), "0"))];
+                                }
                                 break;
 
                             case UtcProtocol.TYPE_CVBS:
@@ -418,30 +473,24 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                     value = String.format(mAddress.getFormat(), mAddress.getValue());
                     if (viewHolder.widget != null) {
                         View leftButton = viewHolder.widget.findViewById(R.id.down);
-                        leftButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                int value = mAddress.getValue();
-                                if (value == mAddress.getMin()) {
-                                    value = mAddress.getMax();
-                                } else {
-                                    value -= 1;
-                                }
-                                mAddress.setValue(value);
+                        leftButton.setOnClickListener(v -> {
+                            int value1 = mAddress.getValue();
+                            if (value1 == mAddress.getMin()) {
+                                value1 = mAddress.getMax();
+                            } else {
+                                value1 -= 1;
                             }
+                            mAddress.setValue(value1);
                         });
                         View rightButton = viewHolder.widget.findViewById(R.id.up);
-                        rightButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                int value = mAddress.getValue();
-                                if (value == mAddress.getMax()) {
-                                    value = mAddress.getMin();
-                                } else {
-                                    value += 1;
-                                }
-                                mAddress.setValue(value);
+                        rightButton.setOnClickListener(v -> {
+                            int value12 = mAddress.getValue();
+                            if (value12 == mAddress.getMax()) {
+                                value12 = mAddress.getMin();
+                            } else {
+                                value12 += 1;
                             }
+                            mAddress.setValue(value12);
                         });
                     }
                     break;
@@ -463,12 +512,9 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                         widget.setTextOn(mTermination.getSwitchTextOn());
                         widget.setTextOff(mTermination.getSwitchTextOff());
 
-                        widget.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                //Log.d(TAG, "onCheckedChanged=" + buttonView + "," + isChecked);
-                                mTermination.setChecked(isChecked);
-                            }
+                        widget.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                            //Log.d(TAG, "onCheckedChanged=" + buttonView + "," + isChecked);
+                            mTermination.setChecked(isChecked);
                         });
                     }
                     break;
@@ -503,6 +549,8 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     @Override
     public void onResume() {
         super.onResume();
+//        Log.d(TAG, "onResume");
+
         mSharedPrefs.registerOnSharedPreferenceChangeListener(this);
         mPreferenceManager.setOnDisplayPreferenceDialogListener(this);
 
@@ -513,6 +561,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
 
     @Override
     public void onPause() {
+//        Log.d(TAG, "onPause");
         mPreferenceManager.setOnDisplayPreferenceDialogListener(null);
         mSharedPrefs.unregisterOnSharedPreferenceChangeListener(this);
 
@@ -522,17 +571,17 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Preference preference;
-
-//        Log.d(TAG, "onItemClick="+position+","+id);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
+        putIntegerPreference(sharedPreferences, "getMode", mode);
+        reCheck(sharedPreferences);
         switch (position - 1) {
             case 0:
                 preference = mMode;
-//                Log.d(TAG, "Mode " + mMode);
                 break;
 
             case 1:
 
-                String protocol = "";
+                String protocol;
                 final String[] ptzModes = getResources().getStringArray(isUtcSupported() ? R.array.ptz_modes_utc : R.array.ptz_modes_sdi);
                 protocol = ptzModes[getPtzMode()];
 //                Log.d(TAG, "Protocol: " + protocol);
@@ -584,7 +633,7 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
         if (!handled) {
             assert this.getFragmentManager() != null;
             if (this.getFragmentManager().findFragmentByTag("android.support.v7.preference.PreferenceFragment.DIALOG") == null) {
-                Object f;
+                DialogFragment f;
                 if (preference instanceof EditTextPreference) {
                     f = EditTextPreferenceDialogFragmentCompat.newInstance(preference.getKey());
                 } else {
@@ -595,8 +644,8 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
                     f = ListPreferenceDialogFragmentCompat.newInstance(preference.getKey());
                 }
 
-                ((DialogFragment) f).setTargetFragment(this, 0);
-                ((DialogFragment) f).show(this.getFragmentManager(), "android.support.v7.preference.PreferenceFragment.DIALOG");
+                f.setTargetFragment(this, 0);
+                f.show(this.getFragmentManager(), "android.support.v7.preference.PreferenceFragment.DIALOG");
             }
         }
     }
@@ -704,4 +753,27 @@ public class PtzMenuFragment extends Fragment implements ListView.OnItemClickLis
     private int getUtcMode(SharedPreferences sharedPreferences) {
         return Integer.parseInt(sharedPreferences.getString(getString(R.string.pref_utc_mode), "0"));
     }
+
+    private void putIntegerPreference(SharedPreferences sharedPreferences, String key, String value) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(key, value);
+        editor.apply();
+    }
+
+    private void changePtzMode() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(getActivity()));
+        MainActivity.PtzSettings ptzSettings = ((MainActivity) MainActivity.mContext).getPtzSettings(pref);
+        ((MainActivity) MainActivity.mContext).changePtzMode(ptzSettings, false);
+    }
+
+    public void setControlMode(int controlMode) {
+        assert getFragmentManager() != null;
+        Fragment fragment = getFragmentManager().findFragmentByTag(OVERLAY_FRAGMENT_TAG);
+        if (fragment instanceof PtzOverlayFragment) {
+            PtzOverlayFragment ptzOverlayFragment = (PtzOverlayFragment) fragment;
+            ptzOverlayFragment.setControlMode(controlMode);
+        }
+    }
+
+
 }

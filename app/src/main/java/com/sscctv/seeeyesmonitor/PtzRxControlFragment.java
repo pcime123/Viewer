@@ -2,6 +2,7 @@ package com.sscctv.seeeyesmonitor;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 //import android.util.Log;
 import android.view.KeyEvent;
@@ -40,28 +41,22 @@ public class PtzRxControlFragment extends PtzControlFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_ptz_rx_control, container, false);
 
         View clearButton = view.findViewById(R.id.key_clear);
-        clearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mListener != null) {
-                    mListener.onClearPtzScreen();
-                }
+        clearButton.setOnClickListener(v -> {
+            if (mListener != null) {
+                mListener.onClearPtzScreen();
             }
         });
         View exitButton = view.findViewById(R.id.key_exit);
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mListener != null) {
-                    mListener.onExitPtzMode();
-                    mListener.onExitMenu();
-                }
+        exitButton.setOnClickListener(v -> {
+            if (mListener != null) {
+                mListener.onExitPtzMode();
+                mListener.onExitMenu();
             }
         });
 
@@ -90,8 +85,15 @@ public class PtzRxControlFragment extends PtzControlFragment {
         if (mListener == null)
             return false;
 		//Log.d(TAG, "onKey="+keyCode);
-        
+
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_BACK:
+                    mListener.onExitPtzMode();
+                    mListener.onExitMenu();
+                    return true;
+
+            }
             return false;
         } else if (event.getAction() == KeyEvent.ACTION_UP) {
             switch (keyCode) {

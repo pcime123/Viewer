@@ -3,6 +3,7 @@ package com.sscctv.seeeyes.ptz;
 import android.util.Log;
 
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 /**
@@ -29,7 +30,7 @@ public class PtzAnalyzer extends PtzMode implements McuControl.OnReceiveBufferLi
     public PtzAnalyzer(McuControl control, int protocol, int baudRate) throws RuntimeException {
         super(control, baudRate);
 
-        Log.d(TAG, "Protocol " + protocol + ", baudRate " + baudRate);
+//        Log.d(TAG, "Protocol " + protocol + ", baudRate " + baudRate);
 
         mProtocol = protocol;
 
@@ -48,12 +49,12 @@ public class PtzAnalyzer extends PtzMode implements McuControl.OnReceiveBufferLi
         // 지원하지 않음
     }
 
-    public int getProtocol() {
+    private int getProtocol() {
         return mProtocol;
     }
 
     public synchronized void setProtocol(int protocol) {
-        Log.d(TAG, "setProtocol(" + protocol + ")");
+//        Log.d(TAG, "setProtocol(" + protocol + ")");
 
         native_exit();
 
@@ -73,6 +74,7 @@ public class PtzAnalyzer extends PtzMode implements McuControl.OnReceiveBufferLi
         mPacketHandler = handler;
 
         mControl.addReceiveBufferListener(this);
+//        Log.d(TAG, "PtzAnalyzer start");
 
         try {
             mControl.setPtzMode(PtzMode.ANALYZER);
@@ -91,13 +93,20 @@ public class PtzAnalyzer extends PtzMode implements McuControl.OnReceiveBufferLi
     }
 
     @Override
-    public synchronized void onReceiveBuffer(ByteBuffer buffer, int length) throws InterruptedException {
+    public synchronized void onReceiveBuffer(ByteBuffer buffer, int length)  {
+        try {
         byte a = buffer.get();
-        ByteBuffer _buffer = ByteBuffer.allocateDirect(1);
+        ByteBuffer _buffer = ByteBuffer.allocateDirect(length);
         _buffer.put(a);
 //        Log.d(TAG, "Buffer: " + _buffer + " length: " + length);
 
-        native_decode_data(_buffer, length);
+
+            native_decode_data(_buffer, length);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BufferUnderflowException e) {
+            //TODO null;
+        }
     }
 
     /**
@@ -111,7 +120,7 @@ public class PtzAnalyzer extends PtzMode implements McuControl.OnReceiveBufferLi
     private void onReceivePacket(char address, char command, byte[] packet) {
         if (mPacketHandler != null) {
             mPacketHandler.onReceivePacket(this, address, command, packet);
-        } else {
+//        } else {
 //            Log.d(TAG, "onReceivePacket(" + address + ", " + command + ", " + packet.length + ")");
         }
     }

@@ -27,8 +27,6 @@ public class ZoomableSurfaceView extends SurfaceView {
     private boolean isSingleTouch;
     private float width, height = 0;
     private float scale = 0.5f;
-    private float minScale = 1f;
-    private float maxScale = 4f;
     int left, top, right, bottom;
 
     private TextView mSignalInfoView;
@@ -89,6 +87,7 @@ public class ZoomableSurfaceView extends SurfaceView {
             super();
         }
 
+        @SuppressLint("ClickableViewAccessibility")
         @Override
         public boolean onTouch(View view, MotionEvent event) {
             SGD.onTouchEvent(event);
@@ -128,13 +127,14 @@ public class ZoomableSurfaceView extends SurfaceView {
         public boolean onScale(ScaleGestureDetector detector) {
 //            Log.e("onGlobalLayout: ", scale + " " + width + " " + height);
             scale *= detector.getScaleFactor();
+            float minScale = 1f;
+            float maxScale = 4f;
             scale = Math.max(minScale, Math.min(scale, maxScale));
 
             SharedPreferences pref = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = pref.edit();
             editor.putFloat("scale", scale);
             editor.apply();
-
 
             FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
             layoutParams.gravity = Gravity.CENTER;

@@ -38,7 +38,7 @@ public class Rs485Port {
     }
 
     private void openSerialPort(String path, int baudRate) {
-        Log.i(TAG, "Path = " + path + " Baudrate = " + baudRate);
+//        Log.i(TAG, "Path = " + path + " Baudrate = " + baudRate);
         mFd = open(device.getAbsolutePath(), baudRate, 0);
 //        mSerialPort = new SerialPort(path);
         if(mFd == null) {
@@ -76,7 +76,7 @@ public class Rs485Port {
     }
 
 
-    public void closePort() throws IOException {
+    public void closePort() {
         close();
 //        stopReader();
     }

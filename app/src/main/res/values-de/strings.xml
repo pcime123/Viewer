@@ -5,7 +5,7 @@
     <string name="nav_drawer_open">Menü öffnen</string>
     <string name="nav_drawer_close">Menü schließen</string>
 
-    <string name="action_settings">Einstellu...</string>
+    <string name="action_settings">Einstellu…</string>
 
     <string name="no_signal">Kein Signal</string>
 
@@ -14,11 +14,11 @@
     <string name="level_normal">Normal</string>
 
     <string name="menu_ptz">PTZ</string>
-    <string name="menu_record">Aufzeich...</string>
-    <string name="menu_snapshot">Schnapp...</string>
+    <string name="menu_record">Aufzeich…</string>
+    <string name="menu_snapshot">Schnapp…</string>
     <string name="menu_play">Wiedergabe</string>
     <string name="menu_poc">PoC</string>
-    <string name="menu_settings">Einstellu...</string>
+    <string name="menu_settings">Einstellu…</string>
 
     <string name="category_ptz">PTZ-Einstellungen</string>
     <string name="category_ptz_utc">PTZ/UTC-Einstellungen</string>
@@ -105,6 +105,7 @@
     <string name="maxSize">Recording files can be generated up to 3G, and recording is ended.</string>
     <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
     <string name="ptz_mode_ucc">UCC</string>
+    <string name="stop_error">Failed to create recording file for unknown reason. Please try again after checking the input signal and storage device status.</string>
 
 
 </resources>

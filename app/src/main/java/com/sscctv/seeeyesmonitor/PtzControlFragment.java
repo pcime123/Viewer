@@ -2,6 +2,7 @@ package com.sscctv.seeeyesmonitor;
 
 import android.support.v4.app.Fragment;
 //import android.util.Log;
+import android.util.Log;
 import android.view.KeyEvent;
 
 /**
@@ -21,7 +22,7 @@ public class PtzControlFragment extends Fragment {
      * @return 이벤트를 처리했으면 true, 아니면 false
      */
     public boolean onKeyPress(int keyCode, KeyEvent event) {
-        //Log.w(TAG, "onKeyPress(" + keyCode + ") : should be overrided");
+        Log.w(TAG, "onKeyPress(" + keyCode + ") : should be overrided");
         return false;
     }
 }

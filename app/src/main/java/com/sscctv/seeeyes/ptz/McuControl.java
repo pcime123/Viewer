@@ -8,9 +8,12 @@ import com.sscctv.seeeyes.VideoSource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by trlim on 2016. 2. 24..
@@ -25,18 +28,21 @@ public class McuControl {
     private InputStream mInputStream;
     private OutputStream mOutputStream;
     private Rs485Port mPort;
-    private SpiPort mSpi;
     private ReadThread mReadThread;
-    private boolean control;
 
 
-    private class ReadThread extends Thread {
+    class ReadThread implements Runnable {
+
+        private boolean stopFlag = false;
 
         @Override
         public void run() {
-            super.run();
-
-            while (control) {
+//            try {
+//                Thread.sleep(5000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            while (!stopFlag) {
                 int length;
                 try {
                     byte[] buffer = new byte[1];
@@ -44,16 +50,26 @@ public class McuControl {
                     length = mInputStream.read(buffer);
 
                     if (length > 0) {
-                        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
-                        onReceiveBuffer(byteBuffer, length);
-//                        Log.d(TAG, "Input Stream: " + Arrays.toString(buffer));
+//                        Log.d(TAG, "ByteBuffer.wrap: " + Arrays.toString(buffer));
+                        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, 1);
+//                        Log.d(TAG, "Input Stream: " + byteBuffer + " length: " + length);
+                            onReceiveBuffer(byteBuffer, length);
 
-
+//                        byteBuffer.clear();
                     }
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
+                    //TODO null;
+                } catch (BufferUnderflowException e) {
+                    e.printStackTrace();
+//                    Log.e(TAG, "McuControl: " + e);
+                    //TODO null;
                 }
             }
+        }
+
+        public void stop() {
+            this.stopFlag = true;
         }
     }
 
@@ -72,6 +88,7 @@ public class McuControl {
         if (mPort != null) {
             return;
         }
+//        Log.i(TAG, "----- Mcu Start");
 
         mPort = new Rs485Port();
         mPort.open(BAUDRATE);
@@ -79,40 +96,37 @@ public class McuControl {
         mInputStream = mPort.getInputStream();
 
         mReadThread = new ReadThread();
-        mReadThread.start();
-        control = true;
+        Thread thread = new Thread(mReadThread);
+        thread.start();
+
         configure(source);
+
 
     }
 
     public synchronized void stop() {
         if (mPort != null) {
-            try {
-                mPort.closePort();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            mPort.closePort();
             mPort = null;
         }
-        if (mReadThread != null) {
-            control = false;
-            mReadThread = null;
-        }
+        mReadThread.stop();
+
     }
 
     /**
      * MCU의 상태를 초기화한다.
      */
-    public void configure(String source) {
+    private void configure(String source) {
         try {
             // 보드 종류 설정
             sendCommand('Z', 'I', 10);
             sendCommand('M', (char) 0, 10);
-
-            // input source mode
             sendInputSourceMode(source);
 
             setVpMode(false);
+            // input source mode
+//            Log.i(TAG, "----- Mcu configure");
+
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -133,8 +147,6 @@ public class McuControl {
 
         byte a = (byte) 0xA0;
         byte b = (byte) 0xFF;
-        byte c = cmd;
-        byte d = data;
         byte e = (byte) (0xFF + cmd + data);
 
 
@@ -156,8 +168,8 @@ public class McuControl {
 //
         mOutputStream.write(a);
         mOutputStream.write(b);
-        mOutputStream.write(c);
-        mOutputStream.write(d);
+        mOutputStream.write(cmd);
+        mOutputStream.write(data);
         mOutputStream.write(e);
 
 
@@ -203,14 +215,18 @@ public class McuControl {
             case VideoSource.AUTO:
                 data = 'U';
                 break;
+            case VideoSource.HOME:
+                data = 'M';
+                break;
         }
 
         if (data != '?') {
             sendCommand('I', data, 10);
         }
+//        Log.i(TAG, "----- Mcu sendInputSourceMode");
     }
 
-    public void setRs485BaudRate(int baudRate) throws IOException, InterruptedException {
+    void setRs485BaudRate(int baudRate) throws IOException, InterruptedException {
         char data;
 
         switch (baudRate) {
@@ -235,13 +251,14 @@ public class McuControl {
                 break;
 
             default:
-                return;
+                data = 2;
+                break;
         }
 
         sendCommand('B', data, 10);
     }
 
-    public void sendRs485Packet(ByteBuffer packet, int length) throws IOException, InterruptedException {
+    void sendRs485Packet(ByteBuffer packet, int length) throws IOException {
         byte data;
 
         for (int i = 0; i < length; i++) {
@@ -283,40 +300,38 @@ public class McuControl {
      * SDI 모드에서 입력신호의 존재를 MCU에 알려준다.
      *
      * @param locked 신호가 있으면 EX = 1, HD = 2, 3G = 3, 아니면 false
-     * @throws IOException
-     * @throws InterruptedException
      */
     public void notifySdiLockState(int locked) throws IOException, InterruptedException {
         switch (locked) {
             case '0':
-                sendCommand('S', (char) 0, 0);
+                sendCommand('S', (char) 0, 10);
                 break;
             case '1':
-                sendCommand('S', (char) 1, 0);
+                sendCommand('S', (char) 1, 10);
                 break;
             case '2':
-                sendCommand('S', (char) 2, 0);
+                sendCommand('S', (char) 2, 10);
                 break;
             case '3':
-                sendCommand('S', (char) 3, 0);
+                sendCommand('S', (char) 3, 10);
                 break;
             case '4':
-                sendCommand('S', (char) 4, 0);
+                sendCommand('S', (char) 4, 10);
                 break;
             case '5':
-                sendCommand('S', (char) 5, 0);
+                sendCommand('S', (char) 5, 10);
                 break;
             case '6':
-                sendCommand('S', (char) 6, 0);
+                sendCommand('S', (char) 6, 10);
                 break;
             case '7':
-                sendCommand('S', (char) 7, 0);
+                sendCommand('S', (char) 7, 10);
                 break;
             case '8':
-                sendCommand('S', (char) 8, 0);
+                sendCommand('S', (char) 8, 10);
                 break;
             default:
-                sendCommand('S', (char) 0, 0);
+                sendCommand('S', (char) 0, 10);
                 break;
         }
     }
@@ -347,26 +362,30 @@ public class McuControl {
 
     public void startPoeCheck() throws IOException, InterruptedException {
 //        Log.d(TAG, "??");
-        sendCommand('G', 'V' , 10);
+        sendCommand('G', 'V', 10);
     }
+
     public void stopPoeCheck() throws IOException, InterruptedException {
-        sendCommand('G', 'v' , 10);
+        sendCommand('G', 'v', 10);
     }
 
     public void startLevelMeter() throws IOException, InterruptedException {
-        sendCommand('G', 'F', 0);
+        sendCommand('G', 'F', 10);
     }
 
     public void stopLevelMeter() throws IOException, InterruptedException {
-        sendCommand('G', 'X', 0);
+        sendCommand('G', 'X', 10);
     }
 
     public void setFormat(int format) throws IOException, InterruptedException {
         sendCommand('F', (char) format, 10);
+
     }
 
+
     public void setVpMode(boolean on) throws IOException, InterruptedException {
-        sendCommand('V', on ? 'O' : 'X', 0);
+        sendCommand('V', on ? 'O' : 'X', 10);
+
     }
 
     //public void sendConfigure(String source) throws IOException, InterruptedException {
@@ -374,7 +393,7 @@ public class McuControl {
     //}
 
     public void attemptVpTest() throws IOException, InterruptedException {
-        sendCommand('V', 'T', 0);
+        sendCommand('V', 'T', 10);
     }
 
     //public void sendCoaxKey(char command) throws IOException, InterruptedException {
@@ -391,19 +410,24 @@ public class McuControl {
 
     public synchronized void addReceiveBufferListener(OnReceiveBufferListener listener) {
         mBufferListeners.add(listener);
+//        Log.d(TAG, "addReceiveBufferListener: " + listener);
     }
 
-    public synchronized void removeReceiveBufferListener(OnReceiveBufferListener listener) {
+    synchronized void removeReceiveBufferListener(OnReceiveBufferListener listener) {
         mBufferListeners.remove(listener);
+//        Log.d(TAG, "removeReceiveBufferListener: " + listener);
+
     }
 
 
-    public synchronized void onReceiveBuffer(ByteBuffer buffer, int length) throws InterruptedException {
+    private synchronized void onReceiveBuffer(ByteBuffer buffer, int length) throws InterruptedException {
         //if (DEBUG) {
 //        Log.d(TAG, "onReceiveBuffer "  +buffer + ", " + length);
         //}
         for (OnReceiveBufferListener listener : mBufferListeners) {
             listener.onReceiveBuffer(buffer, length);
+//                    Log.d(TAG, "onReceiveBuffer "  +buffer + ", " + length);
+
         }
     }
 }

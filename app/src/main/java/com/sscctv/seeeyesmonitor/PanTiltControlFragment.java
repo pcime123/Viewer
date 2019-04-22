@@ -3,6 +3,7 @@ package com.sscctv.seeeyesmonitor;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 //import android.util.Log;
 import android.util.Log;
@@ -23,10 +24,11 @@ import android.widget.TextView;
  * Use the {@link PanTiltControlFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PanTiltControlFragment extends PtzControlFragment {
+public class PanTiltControlFragment extends PtzControlFragment implements View.OnTouchListener {
     //private static final String TAG = "PanTiltControlFragment";
     private OnFragmentInteractionListener mListener;
-    private TextView upButton, downButton, leftButton, rightButton, exitButton;
+    private TextView upButton, downButton, leftButton, rightButton, closeButton;
+
     public PanTiltControlFragment() {
         // Required empty public constructor
     }
@@ -46,88 +48,26 @@ public class PanTiltControlFragment extends PtzControlFragment {
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_pan_tilt_control, container, false);
 
+        upButton = view.findViewById(R.id.ptz_key_up);
+        upButton.setOnTouchListener(this);
+        downButton = view.findViewById(R.id.ptz_key_down);
+        downButton.setOnTouchListener(this);
+        leftButton = view.findViewById(R.id.ptz_key_left);
+        leftButton.setOnTouchListener(this);
+        rightButton = view.findViewById(R.id.ptz_key_right);
+        rightButton.setOnTouchListener(this);
+        closeButton = view.findViewById(R.id.ptz_key_close);
+        closeButton.setOnTouchListener(this);
 
 
-        upButton = view.findViewById(R.id.key_up);
-        upButton.setOnTouchListener((v, event) -> {
-            int action = event.getAction();
-
-            if (MotionEvent.ACTION_DOWN == action) {
-                if (mListener != null) {
-                    upButton.setPressed(true);
-                    mListener.onTiltUp();
-                }
-            } else if (MotionEvent.ACTION_UP == action) {
-                upButton.setPressed(false);
-                mListener.onPtzStop();
-            }
-            return true;
-        });
-
-        downButton = view.findViewById(R.id.key_down);
-        downButton.setOnTouchListener((v, event) -> {
-            int action = event.getAction();
-
-            if (MotionEvent.ACTION_DOWN == action) {
-                if (mListener != null) {
-                    downButton.setPressed(true);
-                    mListener.onTiltDown();
-                }
-            } else if (MotionEvent.ACTION_UP == action) {
-                downButton.setPressed(false);
-                mListener.onPtzStop();
-            }
-            return true;
-        });
-
-        leftButton = view.findViewById(R.id.key_left);
-        leftButton.setOnTouchListener((v, event) -> {
-            int action = event.getAction();
-
-            if (MotionEvent.ACTION_DOWN == action) {
-                leftButton.setPressed(true);
-
-                if (mListener != null) {
-                    mListener.onPanLeft();
-                }
-            } else if (MotionEvent.ACTION_UP == action) {
-                leftButton.setPressed(false);
-                mListener.onPtzStop();
-            }
-            return true;
-        });
-
-        rightButton = view.findViewById(R.id.key_right);
-        rightButton.setOnTouchListener((v, event) -> {
-            int action = event.getAction();
-
-            if (MotionEvent.ACTION_DOWN == action) {
-                rightButton.setPressed(true);
-
-                if (mListener != null) {
-                    mListener.onPanRight();
-                }
-            } else if (MotionEvent.ACTION_UP == action) {
-                rightButton.setPressed(false);
-                mListener.onPtzStop();
-            }
-            return true;
-        });
-
-
-
-
-        View.OnClickListener switchToZoomFocus = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mListener != null) {
-                    mListener.onSwitchToZoomFocus();
-                }
+        View.OnClickListener switchToZoomFocus = v -> {
+            if (mListener != null) {
+                mListener.onSwitchToZoomFocus();
             }
         };
         View zoomFocusButton = view.findViewById(R.id.key_zoomfocus);
@@ -135,30 +75,15 @@ public class PanTiltControlFragment extends PtzControlFragment {
         View panTiltButton = view.findViewById(R.id.key_pantilt);
         panTiltButton.setOnClickListener(switchToZoomFocus);
 
-        View.OnClickListener switchToOsd = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mListener != null) {
-                    mListener.onSwitchToOsd();
-                }
+        View.OnClickListener switchToOsd = v -> {
+            if (mListener != null) {
+                mListener.onSwitchToOsd();
             }
         };
         View ptzButton = view.findViewById(R.id.key_ptz);
         ptzButton.setOnClickListener(switchToOsd);
         View osdButton = view.findViewById(R.id.key_osd);
         osdButton.setOnClickListener(switchToOsd);
-
-        exitButton = view.findViewById(R.id.key_close);
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mListener != null) {
-                    mListener.onExitPtzMode();
-                    mListener.onExitMenu();
-
-                }
-            }
-        });
 
         return view;
     }
@@ -180,11 +105,78 @@ public class PanTiltControlFragment extends PtzControlFragment {
         mListener = null;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if (mListener == null)
+            return false;
+
+        switch (v.getId()) {
+            case R.id.ptz_key_up:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    upButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onTiltUp();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    upButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    mListener.onPtzStop();
+                    return true;
+                }
+                break;
+            case R.id.ptz_key_down:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    downButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onTiltDown();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    downButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    mListener.onPtzStop();
+                    return true;
+                }
+                break;
+            case R.id.ptz_key_left:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    leftButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPanLeft();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    leftButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    mListener.onPtzStop();
+                    return true;
+                }
+                break;
+            case R.id.ptz_key_right:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    rightButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPanRight();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    rightButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    mListener.onPtzStop();
+                    return true;
+                }
+                break;
+            case R.id.ptz_key_close:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    closeButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onExitPtzMode();
+                    mListener.onExitMenu();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    closeButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    return true;
+                }
+                break;
+
+        }
+        return false;
+    }
+
     @Override
     public boolean onKeyPress(int keyCode, KeyEvent event) {
         if (mListener == null)
             return false;
-//        Log.d(TAG, "onKey="+keyCode + " ," + event);
+//        Log.d(TAG, "onKey=" + keyCode + " ," + event);
 
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (keyCode) {
@@ -205,7 +197,7 @@ public class PanTiltControlFragment extends PtzControlFragment {
                     return true;
 
                 case KeyEvent.KEYCODE_BUTTON_MODE:
-                    mListener.onSwitchToOsd();
+//                    mListener.onSwitchToOsd();
                     return true;
 
                 case KeyEvent.KEYCODE_ENTER:
@@ -235,6 +227,9 @@ public class PanTiltControlFragment extends PtzControlFragment {
                     return true;
 
                 case KeyEvent.KEYCODE_BUTTON_MODE:
+                    mListener.onSwitchToOsd();
+                    return true;
+
                 case KeyEvent.KEYCODE_MENU:
                     return true;
             }
@@ -269,6 +264,7 @@ public class PanTiltControlFragment extends PtzControlFragment {
         void onSwitchToOsd();
 
         void onExitPtzMode();
+
         void onExitMenu();
 
     }

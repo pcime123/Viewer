@@ -2,7 +2,9 @@ package com.sscctv.seeeyesmonitor;
 
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
+
+import static android.support.constraint.Constraints.TAG;
 
 
 /**
@@ -21,11 +26,11 @@ import java.util.Locale;
  */
 public class PtzAnalyzerContentsFragment extends PtzContentsFragment {
     private class PtzPacket {
-        public final int address;
+        final int address;
         public final String command;
-        public final String packet;
+        final String packet;
 
-        public PtzPacket(char address, String command, String packet) {
+        PtzPacket(char address, String command, String packet) {
             this.address = address;
             this.command = command;
             this.packet = packet;
@@ -61,14 +66,15 @@ public class PtzAnalyzerContentsFragment extends PtzContentsFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+//        Log.d("PtzAnalyzerFragment", "onCreatView");
         View view = inflater.inflate(R.layout.fragment_ptz_analyzer_contents, container, false);
 
         mPackets = new ArrayList<>();
 
-        mAdapter = new ArrayAdapter<PtzPacket>(getContext(), R.layout.ptz_analyzer_item, mPackets) {
+        mAdapter = new ArrayAdapter<PtzPacket>(Objects.requireNonNull(getContext()), R.layout.ptz_analyzer_item, mPackets) {
             @Override
             public boolean areAllItemsEnabled() {
                 return false;
@@ -79,8 +85,9 @@ public class PtzAnalyzerContentsFragment extends PtzContentsFragment {
                 return false;
             }
 
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 ViewHolder viewHolder;
 
                 if (convertView == null) {
@@ -89,9 +96,9 @@ public class PtzAnalyzerContentsFragment extends PtzContentsFragment {
                     LayoutInflater inflater = LayoutInflater.from(getContext());
                     convertView = inflater.inflate(R.layout.ptz_analyzer_item, parent, false);
 
-                    viewHolder.address = (TextView) convertView.findViewById(R.id.ptz_packet_ch);
-                    viewHolder.command = (TextView) convertView.findViewById(R.id.ptz_packet_command);
-                    viewHolder.packet = (TextView) convertView.findViewById(R.id.ptz_packet_bytes);
+                    viewHolder.address = convertView.findViewById(R.id.ptz_packet_ch);
+                    viewHolder.command = convertView.findViewById(R.id.ptz_packet_command);
+                    viewHolder.packet = convertView.findViewById(R.id.ptz_packet_bytes);
 
                     convertView.setTag(viewHolder);
                 } else {
@@ -100,6 +107,7 @@ public class PtzAnalyzerContentsFragment extends PtzContentsFragment {
 
                 PtzPacket packet = getItem(position);
 
+                assert packet != null;
                 viewHolder.address.setText(String.format(Locale.KOREAN, " %03d", packet.address));
                 viewHolder.command.setText(String.format(Locale.KOREAN, "%s ", packet.command));
                 viewHolder.packet.setText(packet.packet);
@@ -108,7 +116,7 @@ public class PtzAnalyzerContentsFragment extends PtzContentsFragment {
             }
         };
 
-        ListView listView = (ListView) view.findViewById(R.id.ptz_analyzer_contents);
+        ListView listView = view.findViewById(R.id.ptz_analyzer_contents);
 
         listView.setAdapter(mAdapter);
 

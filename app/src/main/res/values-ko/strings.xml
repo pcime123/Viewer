@@ -101,11 +101,12 @@
     <string name="msg_not_support_recording">죄송합니다. 녹화가 지원되지 않는 해상도 입니다.</string>
     <string name="pref_view_change">화면 비율</string>
     <string name="please_wait">잠시만 기다려주십시오…</string>
-    <string name="please_wait_main">진행 중 입니다...</string>
+    <string name="please_wait_main">진행 중 입니다…</string>
     <string name="label_recording_resolution">녹화 해상도</string>
     <string name="storage">"저장 : "</string>
     <string name="poc_pse_support">PoE가 동작하고 있습니다. PoE를 종료 후 시도해주세요.</string>
     <string name="maxSize">녹화가 중지되었습니다. 녹화 파일은 최대 3G까지 생성 가능합니다. </string>
     <string name="rec_error">녹화 중 치명적인 문제가 발생했습니다. 재부팅을 해주세요.</string>
+    <string name="stop_error">알 수 없는 이유로 녹화 파일 생성을 실패 했습니다. 입력 신호와 저장 장치 상태를 확인 후 재 시도해주세요.</string>
 
 </resources>

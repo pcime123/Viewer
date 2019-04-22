@@ -2,6 +2,7 @@ package com.sscctv.seeeyes.video;
 
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceView;
 
 import com.sscctv.seeeyes.SysFsMonitor;
@@ -20,7 +21,7 @@ import java.io.RandomAccessFile;
 public class SdiInput extends CameraInput {
     private static final String TAG = "SdiInput";
 
-    public static final String ARG_MODE = "sdi_mode";
+    private static final String ARG_MODE = "sdi_mode";
 
     public static final int MODE_STOP = '0';  //48
     public static final int MODE_HD = '1';   //49
@@ -45,6 +46,7 @@ public class SdiInput extends CameraInput {
 //        mSignalMonitor = new SysFsMonitor("/sys/class/sdi/ex01a/signal");
 
         //setMode(MODE_STOP);
+        SdiInput.disable();
         HdmiInput.disable();
         AnalogInput.disable();
     }
@@ -72,49 +74,52 @@ public class SdiInput extends CameraInput {
         try {
             //mForceNotifySignalChange = true;
 
-            mSignalMonitor.start(new SysFsMonitor.AttributeChangeHandler() {
-                @Override
-                public void onAttributeChange(RandomAccessFile file) {
-                    byte[] value = new byte[16];
-                    int length = 0;
-                    try {
-                        length = file.read(value);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    if (length > 0) {
-                        String signal = new String(value).substring(0, length);
+            mSignalMonitor.start(file -> {
+                byte[] value = new byte[16];
+                int length = 0;
+                try {
+                    length = file.read(value);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (length > 0) {
+                    String signal = new String(value).substring(0, length);
 
-                        switch (signal) {
-                            case "nosignal":
-                                notifySignalChange(false, 0, 0, '?', 0.0F, MODE_STOP, 254);
-                                if (!isRecording()) {
-                                    //stopPreview();
-                                    stopCameraInput();
-                                }
+                    switch (signal) {
+                        case "nosignal":
+                            Log.d(TAG, "SDI Input = " + signal);
 
-                                //mForceNotifySignalChange = false;
-                                break;
+                            notifySignalChange(false, 0, 0, '?', 0.0F, MODE_STOP, 254);
+                            if (!isRecording()) {
+                                stopPreview();
+                                stopCameraInput();
+                            }
 
-                            case "changed":
-                                //if (getCamera() != null)    stopCameraInput();
-                                startCameraInput();
-                                startPreview();
-                                notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), getMode(), 254);
+                            //mForceNotifySignalChange = false;
+                            break;
 
-                                //mForceNotifySignalChange = false;
-                                break;
+                        case "changed":
+                            Log.d(TAG, "SDI Input = " + signal);
 
-                            default:
-                                //if (mForceNotifySignalChange) {
-                                notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), getMode(), 254);
+                            //if (getCamera() != null)    stopCameraInput();
+                            startCameraInput();
+                            startPreview();
+                            notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), getMode(), 254);
 
-                                //stopAndStartPreview();
+                            //mForceNotifySignalChange = false;
+                            break;
 
-                                //mForceNotifySignalChange = false;
-                                //}
-                                break;
-                        }
+                        default:
+                            Log.d(TAG, "SDI Input = " + signal);
+
+                            //if (mForceNotifySignalChange) {
+                            notifySignalChange(true, getWidth(), getHeight(), getScan(), getRate(), getMode(), 254);
+
+                            //stopAndStartPreview();
+
+                            //mForceNotifySignalChange = false;
+                            //}
+                            break;
                     }
                 }
             });
@@ -177,6 +182,8 @@ public class SdiInput extends CameraInput {
 
     }
 
+
+
 //
 //    private static void setMode28xx(boolean value) {
 //        try {
@@ -234,7 +241,7 @@ public class SdiInput extends CameraInput {
         return height;
     }
 
-    public char getScan() {
+    private char getScan() {
         char scan = '?';
         try {
             FileInputStream file = new FileInputStream("/sys/class/sdi/en332/rate");
@@ -285,7 +292,7 @@ public class SdiInput extends CameraInput {
         public final int ycrc;
         public final int ccrc;
 
-        public CrcCounts(int xcrc, int ycrc, int ccrc) {
+        CrcCounts(int xcrc, int ycrc, int ccrc) {
             this.xcrc = xcrc;
             this.ycrc = ycrc;
             this.ccrc = ccrc;

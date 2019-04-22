@@ -6,23 +6,25 @@
     android:orientation="horizontal"
     android:paddingEnd="0dp"
     android:paddingStart="10dp"
-    tools:context=".OsdControlFragment">
+    tools:context=".OsdControlFragment"
+    >
 
-
-    <TextView
-        android:id="@+id/key_up"
+    <Button
+        android:id="@+id/osd_key_up"
         android:layout_width="80dp"
         android:layout_height="45dp"
-        android:background="@drawable/btn_rounded_selector"
+        android:background="@drawable/btn_rounded_setting"
         android:gravity="center"
         android:paddingBottom="@dimen/ptz_control_padding"
         android:paddingTop="@dimen/ptz_control_padding"
         android:text="@string/up"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        />
 
-    <TextView
-        android:id="@+id/key_down"
+
+    <Button
+        android:id="@+id/osd_key_down"
         android:layout_width="80dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
@@ -35,8 +37,8 @@
 
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/key_left"
+    <Button
+        android:id="@+id/osd_key_left"
         android:layout_width="80dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
@@ -48,8 +50,8 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/key_right"
+    <Button
+        android:id="@+id/osd_key_right"
         android:layout_width="80dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
@@ -61,8 +63,8 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/key_menu"
+    <Button
+        android:id="@+id/osd_key_menu"
         android:layout_width="80dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
@@ -74,8 +76,8 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/key_enter"
+    <Button
+        android:id="@+id/osd_key_enter"
         android:layout_width="80dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
@@ -87,8 +89,8 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/key_exit"
+    <Button
+        android:id="@+id/osd_key_exit"
         android:layout_width="80dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
@@ -146,8 +148,8 @@
     </LinearLayout>
 
 
-    <TextView
-        android:id="@+id/key_close"
+    <Button
+        android:id="@+id/osd_key_close"
         android:layout_width="120dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"

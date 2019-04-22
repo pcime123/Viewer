@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:id="@+id/preference_no_summary"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:baselineAligned="false"
+    android:clipToPadding="false"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:gravity="center_vertical"
     android:minHeight="?android:attr/listPreferredItemHeightSmall"
-    android:paddingStart="5dp"
+    android:orientation="vertical"
     android:paddingEnd="5dp"
-    android:clipToPadding="false"
-    android:baselineAligned="false"
-    android:focusable="true"
-    android:background="?android:attr/selectableItemBackground"
-    android:focusableInTouchMode="true">
+    android:paddingStart="5dp">
 
     <LinearLayout
-        android:orientation="horizontal"
+        android:id="@+id/preference_no_summary_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:baselineAligned="false">
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
         <FrameLayout
             android:id="@+id/icon_frame"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
+
             <ImageView
                 android:id="@android:id/icon"
                 android:layout_width="wrap_content"
@@ -33,16 +37,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingTop="6dip"
-            android:paddingBottom="6dip">
+            android:paddingBottom="6dip"
+            android:paddingTop="6dip">
 
             <TextView
                 android:id="@android:id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:singleLine="true"
                 android:ellipsize="marquee"
+                android:singleLine="true"
+                android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="@color/colorPreferenceTitle"
                 android:textStyle="bold" />
 
@@ -50,13 +54,14 @@
     </LinearLayout>
 
     <!-- Preference should place its actual preference widget here. -->
-    <LinearLayout android:id="@android:id/widget_frame"
+    <LinearLayout
+        android:id="@android:id/widget_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginBottom="6dp"
         android:gravity="center_vertical"
-        android:paddingStart="6dip"
-        android:paddingEnd="6dip"
         android:orientation="vertical"
-        android:layout_marginBottom="6dp" />
+        android:paddingEnd="6dip"
+        android:paddingStart="6dip" />
 
 </LinearLayout>

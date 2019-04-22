@@ -35,7 +35,7 @@ public class PtzReader extends PtzMode implements McuControl.OnReceiveBufferList
         mDataHandler = handler;
 
         mControl.addReceiveBufferListener(this);
-
+//        Log.d(TAG, "PtzReader start");
         try {
             mControl.setPtzMode(PtzMode.RX);
         } catch (IOException | InterruptedException e) {
@@ -46,14 +46,13 @@ public class PtzReader extends PtzMode implements McuControl.OnReceiveBufferList
     @Override
     public void stop() {
         super.stop();
-
         mControl.removeReceiveBufferListener(this);
 
         mDataHandler = null;
     }
 
     @Override
-    public void onReceiveBuffer(ByteBuffer buffer, int length) throws InterruptedException {
+    public void onReceiveBuffer(ByteBuffer buffer, int length) {
         byte[] bytes = new byte[length];
 
 //        byte a = buffer.get();
@@ -63,14 +62,16 @@ public class PtzReader extends PtzMode implements McuControl.OnReceiveBufferList
 //        byte e = buffer.get();
 //                                Log.d(TAG, "1: " + a + " 2: " + b + " 3: " + c + " 4: " + d + " 5: " + e);
 
-        if (mDataHandler != null) {
-            buffer.get(bytes, 0, length);
+        if(length > 0 ) {
+            if (mDataHandler != null) {
+                buffer.get(bytes, 0, 1);
 
-            mDataHandler.onReceiveBuffer(this, bytes);
+                mDataHandler.onReceiveBuffer(this, bytes);
 //            Log.d(TAG, "onReceiveBuffer(" + bytes.length + ")");
-
-        } else {
-            Log.d(TAG, "onReceiveBuffer(" + bytes.length + ")");
+//            } else {
+//            Log.d(TAG, "onReceiveBuffer(" + bytes.length + ")");
+//            }
+            }
         }
     }
 }

@@ -2,7 +2,11 @@ package com.sscctv.seeeyesmonitor;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 //import android.util.Log;
 import android.util.Log;
@@ -23,10 +27,10 @@ import android.widget.TextView;
  * Use the {@link OsdControlFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class OsdControlFragment extends PtzControlFragment {
+public class OsdControlFragment extends PtzControlFragment implements View.OnTouchListener {
     //private static final String TAG = "OsdControlFragment";
     private OnFragmentInteractionListener mListener;
-    private TextView upButton, downButton, leftButton, rightButton, menuButton, closeButton, exitButton, enterButton;
+    private Button upButton, downButton, leftButton, rightButton, menuButton, closeButton, exitButton, enterButton;
 
     public OsdControlFragment() {
         // Required empty public constructor
@@ -47,85 +51,26 @@ public class OsdControlFragment extends PtzControlFragment {
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_osd_control, container, false);
-
-
-        upButton = view.findViewById(R.id.key_up);
-        upButton.setOnTouchListener((v, event) -> {
-            int action = event.getAction();
-
-            if (MotionEvent.ACTION_DOWN == action) {
-                if (mListener != null) {
-                    upButton.setPressed(true);
-                    mListener.onPtzMenuUp();
-                }
-            } else if (MotionEvent.ACTION_UP == action) {
-                upButton.setPressed(false);
-                mListener.onPtzStop();
-            }
-            return true;
-        });
-
-        downButton = view.findViewById(R.id.key_down);
-        downButton.setOnTouchListener((v, event) -> {
-            int action = event.getAction();
-
-            if (MotionEvent.ACTION_DOWN == action) {
-                if (mListener != null) {
-                    downButton.setPressed(true);
-                    mListener.onPtzMenuDown();
-                }
-            } else if (MotionEvent.ACTION_UP == action) {
-                downButton.setPressed(false);
-                mListener.onPtzStop();
-            }
-            return true;
-        });
-
-        leftButton = view.findViewById(R.id.key_left);
-        leftButton.setOnTouchListener((v, event) -> {
-            int action = event.getAction();
-
-            if (MotionEvent.ACTION_DOWN == action) {
-                leftButton.setPressed(true);
-
-                if (mListener != null) {
-                    mListener.onPtzMenuLeft();
-                }
-            } else if (MotionEvent.ACTION_UP == action) {
-                leftButton.setPressed(false);
-                mListener.onPtzStop();
-            }
-            return true;
-        });
-
-        rightButton = view.findViewById(R.id.key_right);
-        rightButton.setOnTouchListener((v, event) -> {
-            int action = event.getAction();
-
-            if (MotionEvent.ACTION_DOWN == action) {
-                rightButton.setPressed(true);
-
-                if (mListener != null) {
-                    mListener.onPtzMenuRight();
-                }
-            } else if (MotionEvent.ACTION_UP == action) {
-                rightButton.setPressed(false);
-                mListener.onPtzStop();
-            }
-            return true;
-        });
-
-
-        enterButton = view.findViewById(R.id.key_enter);
-        enterButton.setOnClickListener(v -> {
-            if (mListener != null) {
-                mListener.onPtzMenuEnter();
-            }
-        });
+        upButton = view.findViewById(R.id.osd_key_up);
+        upButton.setOnTouchListener(this);
+        downButton = view.findViewById(R.id.osd_key_down);
+        downButton.setOnTouchListener(this);
+        leftButton = view.findViewById(R.id.osd_key_left);
+        leftButton.setOnTouchListener(this);
+        rightButton = view.findViewById(R.id.osd_key_right);
+        rightButton.setOnTouchListener(this);
+        enterButton = view.findViewById(R.id.osd_key_enter);
+        enterButton.setOnTouchListener(this);
+        exitButton = view.findViewById(R.id.osd_key_exit);
+        exitButton.setOnTouchListener(this);
+        closeButton = view.findViewById(R.id.osd_key_close);
+        closeButton.setOnTouchListener(this);
+        menuButton = view.findViewById(R.id.osd_key_menu);
+        menuButton.setOnTouchListener(this);
 
         View.OnClickListener switchToPtz = v -> {
             if (mListener != null) {
@@ -137,32 +82,9 @@ public class OsdControlFragment extends PtzControlFragment {
         View osdButton = view.findViewById(R.id.key_osd);
         osdButton.setOnClickListener(switchToPtz);
 
-        exitButton = view.findViewById(R.id.key_exit);
-        exitButton.setOnClickListener(v -> {
-            if (mListener != null) {
-                mListener.onPtzMenuEsc();
-            }
-        });
-
-        closeButton = view.findViewById(R.id.key_close);
-        closeButton.setOnClickListener(v -> {
-            if (mListener != null) {
-                mListener.onExitPtzMode();
-                mListener.onExitMenu();
-            }
-        });
-
-        menuButton = view.findViewById(R.id.key_menu);
-        menuButton.setOnClickListener((v) -> {
-
-            if (mListener != null) {
-                mListener.onPtzMenuOn();
-            }
-        });
-
-
         return view;
     }
+
 
     @Override
     public void onAttach(Context context) {
@@ -176,15 +98,116 @@ public class OsdControlFragment extends PtzControlFragment {
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if (mListener == null)
+            return false;
+
+        switch (v.getId()) {
+            case R.id.osd_key_up:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    upButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPtzMenuUp();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    upButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    mListener.onPtzStop();
+                    return true;
+                }
+                break;
+            case R.id.osd_key_down:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    downButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPtzMenuDown();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    downButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    mListener.onPtzStop();
+                    return true;
+                }
+                break;
+            case R.id.osd_key_left:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    leftButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPtzMenuLeft();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    leftButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    mListener.onPtzStop();
+                    return true;
+                }
+                break;
+            case R.id.osd_key_right:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    rightButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPtzMenuRight();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    rightButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    mListener.onPtzStop();
+                    return true;
+                }
+                break;
+            case R.id.osd_key_menu:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    menuButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPtzMenuOn();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    menuButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    return true;
+                }
+                break;
+            case R.id.osd_key_enter:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    enterButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPtzMenuEnter();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    enterButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    return true;
+                }
+                break;
+            case R.id.osd_key_exit:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    exitButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onPtzMenuEsc();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    exitButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    return true;
+                }
+                break;
+            case R.id.osd_key_close:
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    closeButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_active));
+                    mListener.onExitMenu();
+                    return true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    closeButton.setBackground(getResources().getDrawable(R.drawable.btn_rounded_setting));
+                    return true;
+                }
+                break;
+
+        }
+        return false;
+    }
+
     @Override
     public boolean onKeyPress(int keyCode, KeyEvent event) {
-//        Log.d(TAG, "onKey= "+ keyCode + " event= " + event);
-
+//        Log.d(TAG, "Osd: " + keyCode + " ," + event);
         if (mListener == null)
             return false;
 
@@ -207,7 +230,6 @@ public class OsdControlFragment extends PtzControlFragment {
                     return true;
 
                 case KeyEvent.KEYCODE_BUTTON_MODE:
-                    mListener.onSwitchToPanTilt();
                     return true;
 
                 case KeyEvent.KEYCODE_ENTER:
@@ -227,9 +249,11 @@ public class OsdControlFragment extends PtzControlFragment {
 
                 case KeyEvent.KEYCODE_ENTER:
                     mListener.onPtzMenuEnter();
+//                    mListener.onPtzStop();
                     return true;
 
                 case KeyEvent.KEYCODE_BUTTON_MODE:
+                    mListener.onSwitchToPanTilt();
                     return true;
 
                 case KeyEvent.KEYCODE_HOME:
@@ -246,9 +270,9 @@ public class OsdControlFragment extends PtzControlFragment {
                     return true;
             }
         }
-
         return false;
     }
+
 
     /**
      * This interface must be implemented by activities that contain this

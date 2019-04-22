@@ -64,7 +64,7 @@
     <string name="ptz_mode_rx">RS-485 RX</string>
     <string name="ptz_mode_analyze">Analyze</string>
     <string name="ptz_mode_utc">UTC</string>
-    <string name="ptz_mode_ucc" translatable="false">UCC</string>
+    <string name="ptz_mode_ucc">UCC</string>
 
     <string-array name="ptz_modes_sdi">
         <item>@string/ptz_mode_tx</item>
@@ -945,5 +945,16 @@
     <string name="storage">Storage : </string>
     <string name="maxSize">Recording stopped as the recording file can be created up to 3G.</string>
     <string name="rec_error">A fatal problem occurred during recording. Please reboot.</string>
+    <string name="stop_error">Record failed for unknown reasons.</string>
+    <string name="tdm_ch_select">TDM CH Select</string>
+    <string name="tdm_slot_id">TDM SLOT ID</string>
+    <string name="ch_1">CH 1:</string>
+    <string name="ch_2">CH 2:</string>
+    <string name="ch_3">CH 3:</string>
+    <string name="ch_4">CH 4:</string>
+    <string name="ch_5">CH 5:</string>
+    <string name="ch_6">CH 6:</string>
+    <string name="ch_7">CH 7:</string>
+    <string name="ch_8">CH 8:</string>
 
 </resources>

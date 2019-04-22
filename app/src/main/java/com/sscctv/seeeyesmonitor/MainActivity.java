@@ -3,7 +3,6 @@ package com.sscctv.seeeyesmonitor;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -11,18 +10,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.AudioManager;
-//import android.media.AudioRecord;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
-import android.media.MediaActionSound;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.media.MediaRouter;
 import android.media.MediaScannerConnection;
-import android.media.SoundPool;
+import android.media.ToneGenerator;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -30,9 +25,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.StatFs;
-import android.os.SystemClock;
-import android.os.storage.StorageVolume;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
@@ -47,7 +39,6 @@ import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -55,20 +46,18 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-//import android.widget.FrameLayout;
-import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sscctv.seeeyes.VideoSource;
-import com.sscctv.seeeyes.ptz.LevelMeterListener;
 import com.sscctv.seeeyes.ptz.McuControl;
-import com.sscctv.seeeyes.ptz.PocStateListener;
+import com.sscctv.seeeyes.ptz.McuDataListener;
 import com.sscctv.seeeyes.ptz.PtzAnalyzer;
 import com.sscctv.seeeyes.ptz.PtzControl;
 import com.sscctv.seeeyes.ptz.PtzMode;
@@ -77,9 +66,7 @@ import com.sscctv.seeeyes.ptz.PtzWriter;
 import com.sscctv.seeeyes.ptz.UtcProtocol;
 import com.sscctv.seeeyes.ptz.UtcWriter;
 import com.sscctv.seeeyes.video.AnalogInput;
-import com.sscctv.seeeyes.video.CameraInput;
 import com.sscctv.seeeyes.video.HdmiInput;
-import com.sscctv.seeeyes.video.PointView;
 import com.sscctv.seeeyes.video.SdiInput;
 import com.sscctv.seeeyes.video.VideoInput;
 
@@ -91,7 +78,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.Inet4Address;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -101,12 +87,15 @@ import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static android.media.AudioManager.*;
-//import static com.sscctv.seeeyes.video.CameraInput.getMode;
+import static android.media.AudioManager.FLAG_PLAY_SOUND;
 import static com.sscctv.seeeyes.video.VideoInput.Listener;
 import static com.sscctv.seeeyes.video.VideoInput.SignalInfo;
 import static com.sscctv.seeeyes.video.VideoInput.SnapshotCallback;
 import static com.sscctv.seeeyes.video.VideoInput.getSystem;
+
+//import android.media.AudioRecord;
+//import android.widget.FrameLayout;
+//import static com.sscctv.seeeyes.video.CameraInput.getMode;
 
 
 /**
@@ -152,10 +141,9 @@ public class MainActivity extends AppCompatActivity
         PtzRxControlFragment.OnFragmentInteractionListener,
         PtzAnalyzerControlFragment.OnFragmentInteractionListener,
         RecordOverlayFragment.OnFragmentInteractionListener,
-        PocOverlayFragment.OnFragmentInteractionListener,
         SharedPreferences.OnSharedPreferenceChangeListener,
         PreferenceFragmentCompat.OnPreferenceDisplayDialogCallback, SurfaceHolder.Callback, View.OnTouchListener {
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "Viewer_1904181300";
 
     private static final String EXTRA_SOURCE = "com.sscctv.seeeyesmonitor.source";
 
@@ -194,6 +182,10 @@ public class MainActivity extends AppCompatActivity
     private VideoInput.SignalInfo mSignalInfo;
 
     private TextView mSignalInfoView;
+    private TextView mPocState;
+    private LinearLayout mPocOverlay;
+    private RelativeLayout mPocDialog;
+
     private Runnable mHideSignalInfoTask;
 
     private ViewGroup mNoSignalView;
@@ -227,7 +219,6 @@ public class MainActivity extends AppCompatActivity
     private PtzOverlayFragment mPtzOverlay;
 
     private McuControl mMcuControl;
-    private PocStateListener mPocStateListener;
 
     private int mMode;
     private int mPendingMode;
@@ -250,8 +241,8 @@ public class MainActivity extends AppCompatActivity
     private DataOutputStream opt;
 
     private boolean btnChk = true;
-    private TimerTask timerTask;
-
+    private TimerTask tdmTask;
+    private Timer tdmTimer;
     private SdiInput _sdiInput;
     private int cvbs_Input;
     private int utc_value;
@@ -260,14 +251,45 @@ public class MainActivity extends AppCompatActivity
     private Timer zoomTimer;
     private TimerTask zoomTask;
 
-    private TextView storageView;
-    private boolean recordMode;
     private AudioManager audioManager;
-    private CameraInput cameraInput;
-    private long mLastClickTime;
 
-    SoundPool soundPool;
-    int mDdok;
+    private boolean pocMode;
+
+    public static final int MODE_CHECK = 0;
+    public static final int MODE_POWER = 1;
+    public static final int MODE_PSE = 2;
+
+    public static final int STATE_POWER_OFF = 0;
+    //    public static final int STATE_STB_CHK = 1;
+//    public static final int STATE_LINK_CHK = 2;
+    public static final int STATE_LINK_OK = 3;
+    //    public static final int STATE_POWER_ON = 4;
+//    public static final int STATE_POWER_BRK = 5;
+//    public static final int STATE_POWER_CHK = 6;
+    public static final int STATE_C_OPEN = 7;
+//    public static final int STATE_C_SHORT = 8;
+//    public static final int STATE_C_OVER = 9;
+//    public static final int STATE_C_NONE = 10;
+
+    private int _mode;
+    private Button yesButton;
+
+    private SettingsContentObserver mSettingsContentObserver;
+
+    private Thread mPlayThread;
+    private TextView test;
+
+    private boolean onPocDialog;
+    private boolean onPtzMenu;
+
+    private int index;
+    private String mediaPath;
+    private boolean setLevelMeter;
+
+    private File mediaFile;
+    private boolean isPocMode = false;
+    private String getLocale;
+
 
     @SuppressLint("StaticFieldLeak")
     public static Context mContext;
@@ -277,15 +299,21 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        Log.i(TAG, "Viewer App Data: 201903261134   Version: 2.0.0");
 
         mContext = this;
         // 설정값을 초기화한다.
         SharedPreferences defaultValueSp = this.getSharedPreferences("_has_set_default_values", 0);
         if (!defaultValueSp.getBoolean("_has_set_default_values", false)) {
-            Log.i(TAG, "_has_set_default_values = " + defaultValueSp.getBoolean("_has_set_default_values", false));
+//            Log.i(TAG, "_has_set_default_values = " + defaultValueSp.getBoolean("_has_set_default_values", false));
             PreferenceManager.setDefaultValues(this, R.xml.prefs_ptz, true);
             PreferenceManager.setDefaultValues(this, R.xml.prefs_settings, true);
         }
+
+        SharedPreferences pref = getSharedPreferences("poc_gallery", MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean("poc_gallery", true);
+        editor.apply();
 
 //        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //                WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -300,18 +328,23 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
+        Locale systemLocale = getApplicationContext().getResources().getConfiguration().locale;
+        getLocale = systemLocale.getLanguage();
+//        Log.d(TAG, "getLocale: " + getLocale);
+
         mSurfaceView = findViewById(R.id.surface);
         mSurfaceView.getHolder().addCallback(this);
-        mSurfaceView.setBackgroundColor(ContextCompat.getColor(getApplication(), R.color.noSignalBackground));
-
-//        FrameLayout frameLayout = findViewById(R.id.frameLayout);
-//        PointView pointView = new PointView(this);
-//        frameLayout.addView(pointView);
+//        mSurfaceView.setZOrderOnTop(true);
+//        mSurfaceView.setBackgroundColor(ContextCompat.getColor(getApplication(), R.color.colorLevelGood));
 
         mSignalInfoView = findViewById(R.id.video_info);
+        mPocOverlay = findViewById(R.id.poc_overlay);
+        mPocState = findViewById(R.id.poc_state);
+        mPocDialog = findViewById(R.id.poc_dialog);
+
+
         mNoSignalView = findViewById(R.id.no_signal);
         mMcuControl = new McuControl();
-
 
         tdm_set = findViewById(R.id.tdm_set_button);
         mTdmSetupView = findViewById(R.id.tdm_slot);
@@ -326,24 +359,65 @@ public class MainActivity extends AppCompatActivity
         tdm_ch7 = findViewById(R.id.tdm_ch7);
         tdm_ch8 = findViewById(R.id.tdm_ch8);
 
-        zoomView = findViewById(R.id.test_view);
-//        storageView = findViewById(R.id.recording_storage);
 
+        zoomView = findViewById(R.id.test_view);
 
         gpioPortSet();
         startMenuOverlayHandler();
         startInputInfoCheckHandler();
-        startLevelMeterHandler();
+        startMcuHandler();
         tdm_set.setFocusable(false);
 
-
-        soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
-        mDdok = soundPool.load(this, R.raw.ddok, 1);
-
-        setVolumeControlStream(STREAM_MUSIC);      // 미디어 볼륨 컨트롤 고정
         //        getLayoutValue();
 //        mSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(1920 , 1200));
-//        Log.d(TAG, "Layout: " + mSurfaceView.getWidth() + " - " + mSurfaceView.getHeight());
+        yesButton = findViewById(R.id.yes);
+        yesButton.setOnClickListener(v -> {
+            switch (_mode) {
+                case MODE_CHECK:
+                    onStartPocCheck();
+                    break;
+
+                case MODE_POWER:
+                    onApplyPocPower();
+                    break;
+                case MODE_PSE:
+                    break;
+            }
+
+        });
+
+        Button noButton = findViewById(R.id.no);
+        noButton.setOnClickListener(v -> {
+            pocMode = false;
+            switch (_mode) {
+                case MODE_CHECK:
+                    onCancelPocCheck();
+                    break;
+
+                case MODE_POWER:
+                    onRemovePocPower();
+                    break;
+
+                case MODE_PSE:
+                    break;
+            }
+
+            hidePocDialog();
+            hidePocOverlay();
+
+            if (hasNoSignal(mSignalInfo)) {
+                mNoSignalView.setVisibility(View.VISIBLE);
+            }
+
+        });
+
+
+//        test = findViewById(R.id.test);
+        mSettingsContentObserver = new SettingsContentObserver(this, new Handler());
+        getApplicationContext().getContentResolver().registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, mSettingsContentObserver);
+
+
+
     }
 
 
@@ -360,22 +434,6 @@ public class MainActivity extends AppCompatActivity
 //    }
 
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
-
-
     public void delay_ms(long ms_cnt, int nano_cnt) {
         try {
             Thread.sleep(ms_cnt, nano_cnt);
@@ -388,12 +446,34 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         Log.i(TAG, "onResume");
         super.onResume();
+        if (mMcuControl != null) {
+            mMcuControl.start(initSource);
+        }
+
+        closePoeView();
+        Intent intent = new Intent();
+        intent.setAction("com.sscctv.seeeyesmonitor");
+        intent.putExtra("state", "resume");
+        sendBroadcast(intent);
+
+        IntentFilter screen_filter = new IntentFilter();
+        screen_filter.addAction(Intent.ACTION_SCREEN_OFF);
+        screen_filter.addAction(Intent.ACTION_SCREEN_ON);
+        registerReceiver(mScreen, screen_filter);
 
         zoomView.setVisibility(View.INVISIBLE);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
+
+        SharedPreferences pref = getSharedPreferences("poc_gallery", MODE_PRIVATE);
+        boolean poc_gallery = pref.getBoolean("poc_gallery", true);
+
+//        Log.d(TAG, "PoC Gallery: " + poc_gallery);
+//        if(poc_gallery) {
+
+//        }
 
         if (mMode == MODE_PTZ) {
             enterPtzMode();
@@ -402,11 +482,6 @@ public class MainActivity extends AppCompatActivity
         }
         createVideoInput();
 
-        Intent intent = new Intent();
-        intent.setAction("com.sscctv.seeeyesmonitor");
-        intent.putExtra("state", "resume");
-        sendBroadcast(intent);
-
         mVideoThread = new HandlerThread("VideoThread");
         mVideoThread.start();
         mVideoHandler = new Handler(mVideoThread.getLooper());
@@ -414,16 +489,10 @@ public class MainActivity extends AppCompatActivity
         mVideoHandler.post(() -> {
             // Thread를 yield하는 것만으로 onResume시 부하가 분산되어 실행 속도가 빨라진다.
             delay_ms(0, 0);
-//                Log.d(TAG, "Focus  - - - - - " + getCurrentFocus());
 
             // 카메라 장치를 열고 동작을 시작한다
             startVideoInput();
         });
-
-        if (mMcuControl != null) {
-//            Log.d(TAG, "SourceId: " + sourceId);
-            mMcuControl.start(sourceId);
-        }
 
 
         if (mMode == MODE_RECORD) updateRecordingState(false);
@@ -433,7 +502,7 @@ public class MainActivity extends AppCompatActivity
 //        mLockTouchScreen = isTouchScreenLocked(sharedPreferences);
         startWatchingExternalStorage();
 
-        // 미디어 볼륨 컨트롤 고정
+//        setVolumeControlStream(AudioManager.STREAM_MUSIC);      // 미디어 볼륨 컨트롤 고정
 
         zoomTask = zoomTimeTask();
 
@@ -442,6 +511,7 @@ public class MainActivity extends AppCompatActivity
             zoomTimer.schedule(zoomTask, 100, 500);
         }
 
+//        index = 0;
 
     }
 
@@ -449,13 +519,20 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         Log.i(TAG, "onPause");
-//        mPreview.onPause();
+        if (isRecording()) {
+            stopRecord();
+        }
+        new Thread(() -> {
+            stopHdmiAudioPlay(true);
+        }).start();
 
         zoomView.setVisibility(View.INVISIBLE);
 
-        if (timerTask != null) {
-            timerTask.cancel();
-            timerTask = null;
+        if (tdmTask != null) {
+            tdmTimer.cancel();
+            tdmTask.cancel();
+            tdmTimer = null;
+//            Log.d(TAG, "Timer Task Pause: " + timerTask);
         }
         // Toast를 숨김
         if (mActiveToast != null) {
@@ -469,45 +546,25 @@ public class MainActivity extends AppCompatActivity
             zoomTimer = null;
         }
 
-        Intent intent = new Intent();
-        intent.setAction("com.sscctv.seeeyesmonitor");
-        intent.putExtra("state", "pause");
-        sendBroadcast(intent);
-
-        closeDrawer();
-
-        switch (mMode) {
-            case MODE_VIEW:
-                hideSignalInfo();
-                break;
-            case MODE_POC:
-                exitPocMode();
-                break;
-            case MODE_RECORD:
-                if (isRecording()) {
-                    stopRecord();
-                }
-//            case MODE_PTZ:
-//                hideSignalInfo();
-//                break;
-
-            default:
-                break;
+        if (mMode == MODE_POC || pocMode) {
+            exitPocMode();
+            pocMode = false;
         }
-        stopHdmiAudioPlay();
-        setAudioMode(AUDIO_MODE_IN_NONE);
-//        try {
-//            mSource.release();			// set gpio pin vp_ctrl, pse_en, adc_sel
-//        } catch (IOException e) {
-//            e.printStackTrace();
+        closeDrawer();
+        hideSignalInfo();
+
+//        SharedPreferences pref = getSharedPreferences("poc_gallery", MODE_PRIVATE);
+//        boolean poc_gallery = pref.getBoolean("poc_gallery", true);
+//
+//        Log.d(TAG, "PoC Gallery: " + poc_gallery);
+//        if(poc_gallery) {
 //        }
-        mVideoInput.stopPreview();
+
 
         mVideoHandler.post(() -> {
             delay_ms(0, 0);
             // 카메라 장치를 중지시킨다
             stopVideoInput();
-
             Looper looper = Looper.myLooper();
             if (looper != null) {
                 looper.quit();
@@ -519,11 +576,27 @@ public class MainActivity extends AppCompatActivity
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         mVideoThread = null;
         mSignalInfo = null;                // 다음 번 실행할 때 신호 정보를 갱신하게 함
 
+
         PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
         stopWatchingExternalStorage();
+
+        Intent intent = new Intent();
+        intent.setAction("com.sscctv.seeeyesmonitor");
+        intent.putExtra("state", "pause");
+        sendBroadcast(intent);
+
+        if (mMcuControl != null) {
+//            Log.d(TAG, "SourceId: " + sourceId);
+            mMcuControl.stop();
+//            Log.d(TAG, "mMcuControl.stop");
+
+//            mMcuControl = null;
+        }
+        openPoeView();
 
         super.onPause();
     }
@@ -535,10 +608,58 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
+        if (mActiveToast != null) {
+            mActiveToast.cancel();
+            mActiveToast = null;
+        }
+        stopBroadCastScreen();
+        getApplicationContext().getContentResolver().unregisterContentObserver(mSettingsContentObserver);
         super.onDestroy();
     }
 
 //--------------------------------------------------------------------------------------------------
+
+
+    BroadcastReceiver mScreen = new BroadcastReceiver() {
+        @Override
+
+        public void onReceive(Context context, Intent intent) {
+
+            String action = intent.getAction();
+            assert action != null;
+//            if (action.equals(Intent.ACTION_SCREEN_ON)) {
+//                Log.d(TAG, "Screen ON");
+                //TODO
+//            }
+            if (action.equals(Intent.ACTION_SCREEN_OFF)) {
+//                Log.d(TAG, "Screen OFF");
+                if (isRecording()) {
+                    stopRecord();
+                }
+
+                if (setLevelMeter) {
+                    try {
+                        mMcuControl.stopLevelMeter();
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (mMode == MODE_POC || pocMode) {
+                    exitPocMode();
+//                    Log.d(TAG, "Sleep off: PoC");
+                    pocMode = false;
+                }
+
+            }
+        }
+    };
+
+    public void stopBroadCastScreen() {
+        if (mScreen != null) {
+            unregisterReceiver(mScreen);
+        }
+    }
 
     private void gpioPortSet() {
         try {
@@ -578,6 +699,9 @@ public class MainActivity extends AppCompatActivity
         return !initSource.equals(VideoSource.HDMI);
     }
 
+//    private boolean supportsPoC() {
+//
+//    }
 
     private int supportsUTC() {
 
@@ -614,7 +738,6 @@ public class MainActivity extends AppCompatActivity
                 utcType = UtcProtocol.TYPE_NONE;
                 break;
         }
-
         return utcType;
     }
 
@@ -639,7 +762,6 @@ public class MainActivity extends AppCompatActivity
                 value = "0";
                 break;
         }
-//        Log.d(TAG, "utcTypeNum: " + value);
 
         return Integer.valueOf(value);
 
@@ -651,7 +773,7 @@ public class MainActivity extends AppCompatActivity
      * @return PoC 지원하면 true, 아니면 false
      */
     private boolean supportsPoC() {
-        return mSource.is(VideoSource.SDI);
+        return initSource.equals(VideoSource.SDI);
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -743,44 +865,77 @@ public class MainActivity extends AppCompatActivity
                         break;
                 }
 //                Log.d(TAG, "SourceId: " + sourceId);
-                notifySignalChangeToMcu(sourceId, mSignalInfo);
                 mPtzSubmenuFragment = PtzMenuFragment.newInstance(utcType());
                 mPtzOverlay = PtzOverlayFragment.newInstance(utcType());
                 changeUtcMode(utcType());
-//                mPtzSubmenuFragment.refreshMenu();
 
-                startHdmiAudioPlay(true);
+                switch (mMode) {
+                    case MODE_PTZ:
+                        enterPtzMode();
+                        break;
+                    case MODE_VIEW:
+                    case MODE_RECORD:
+                    case MODE_SNAPSHOT:
+                        mNoSignalView.setVisibility(View.INVISIBLE);
+                        break;
+                }
+
+                startHdmiAudioPlay();
+
 
             } else if (hasNoSignal(mSignalInfo)) {
-                updateSurfaceView(mSignalInfo);
-                showSignalInfo(mSignalInfo);
-                mNoSignalView.setVisibility(View.VISIBLE);
+//                Log.d(TAG, "startInputInfoCheckHandler mMode: " + mMode + " PoC: " + pocMode);
+                switch (mMode) {
+                    case MODE_POC:
+                        mNoSignalView.setVisibility(View.INVISIBLE);
+//                        mPocDialog.setVisibility(View.VISIBLE);
+                        break;
+                    case MODE_PTZ:
+                        if (pocMode) {
+                            mNoSignalView.setVisibility(View.INVISIBLE);
+                        } else {
+                            hidePocDialog();
+                            hidePocOverlay();
+                            hideLevelMeter();
+                            mNoSignalView.setVisibility(View.INVISIBLE);
+                        }
+                        break;
+                    case MODE_VIEW:
+                    case MODE_RECORD:
+                    case MODE_SNAPSHOT:
+                        if (pocMode) {
+                            mNoSignalView.setVisibility(View.INVISIBLE);
+                        } else {
+                            hidePocDialog();
+                            hidePocOverlay();
+                            mNoSignalView.setVisibility(View.VISIBLE);
+                        }
+                        break;
+                }
                 zoomView.setVisibility(View.INVISIBLE);
                 tdm_set.setVisibility(View.INVISIBLE);
                 mTdmSetupView.setVisibility(View.INVISIBLE);
                 if (!mSignalInfo.signal && isRecording()) {
                     stopRecording();
-
                 }
-                if (mMode != MODE_VIEW) {
-                    mNoSignalView.setVisibility(View.INVISIBLE);
-                    mSignalInfoView.setVisibility(View.INVISIBLE);
-                }
-//                Log.d(TAG, "Video loss");
-                try {
-                    mMcuControl.stopLevelMeter();
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                stopHdmiAudioPlay();
+//                if(setLevelMeter) {
+//                    try {
+//                        mMcuControl.stopLevelMeter();
+//                    } catch (IOException | InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+                stopHdmiAudioPlay(false);
             }
 
-            if (mMode == MODE_VIEW && mPendingMode == MODE_INVALID) {
+            notifySignalChangeToMcu(sourceId, mSignalInfo);
+            if ((mMode == MODE_VIEW || mMode == MODE_POC) && mPendingMode == MODE_INVALID) {
                 showSignalInfo(mSignalInfo);
             } else if (isDrawerOpen()) {
                 if (hasNoSignal(mSignalInfo)) {
-                    mNoSignalView.setVisibility(View.VISIBLE);
+//                    mNoSignalView.setVisibility(View.INVISIBLE);
+                    enterVideoMode();
+                    closeDrawer();
                 }
             }
 
@@ -789,28 +944,41 @@ public class MainActivity extends AppCompatActivity
     }
 
     private static boolean hasNoSignal(VideoInput.SignalInfo signalInfo) {
-        return !signalInfo.signal || signalInfo.width == 0 || signalInfo.height == 0;
+        return ((!signalInfo.signal || signalInfo.width == 0 || signalInfo.height == 0) || (signalInfo.width > 5000 || signalInfo.height > 5000));
     }
 
     private void updateSurfaceView(VideoInput.SignalInfo signalInfo) {
+//        Log.d(TAG, "updateSurfaceView: " + hasNoSignal(signalInfo));
+        AudioManager audio = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        assert audio != null;
+        int currentVolume = audio.getStreamVolume(AudioManager.STREAM_MUSIC);
+
         if (hasNoSignal(signalInfo)) {
             // 이전에 입력된 영상이 남아있을 수 있으므로 검은 배경을 씌워 화면을 지우는 효과를 낸다.
-            if (mMode == MODE_PTZ) {
-                enterPtzMode();
-            } else {
-                enterVideoMode();
-            }
+//            Log.d(TAG, "updateSurfaceView - NoSignal - SignalInfo: " + signalInfo.signal);
             mSurfaceView.setBackgroundColor(ContextCompat.getColor(getApplication(), R.color.noSignalBackground));
+
+            new Handler().postDelayed(() -> mSurfaceView.setBackgroundColor(ContextCompat.getColor(getApplication(), R.color.noSignalBackground)), 1000);
+
         } else {
             // 이전 메모리 잔상이 보이는 것을 가리기 위한 딜레이
-            delay_ms(0, 500);
+//            audio.setParameters("dac_volume=" + (0));
+//            delay_ms(0, 500);
+            new Handler().postDelayed(() -> {
+//                Log.d(TAG, "UpdateSurfaceView setBackgroundColor: TRANSPARENT");
+                mSurfaceView.setBackgroundColor(Color.TRANSPARENT);
+                audio.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, FLAG_PLAY_SOUND);
+                audio.setParameters("dac_volume=" + (currentVolume));
+
+            }, 1000);
             // 배경을 제거하여 입력 영상이 보이게 한다.
-            mSurfaceView.setBackgroundColor(Color.TRANSPARENT);
         }
+//        Log.d(TAG, "currentVolume: " + currentVolume);
+
     }
 
     private void showSignalInfo(SignalInfo signalInfo) {
-        Log.i(TAG, "showSignalInfo: " + signalInfo.width + "x" + signalInfo.height + signalInfo.scan + "@" + signalInfo.rate);
+//        Log.w(TAG, "showSignalInfo: " + signalInfo.width + "x" + signalInfo.height + signalInfo.scan + "@" + signalInfo.rate);
 
         if (mHideSignalInfoTask != null) {
             mSignalInfoView.removeCallbacks(mHideSignalInfoTask);
@@ -832,24 +1000,30 @@ public class MainActivity extends AppCompatActivity
                     break;
 
                 case SdiInput.MODE_EX1:
-                    builder.append("EX-SDI");
+                    builder.append("EX-SDI [1.0]");
                     break;
 
                 case SdiInput.MODE_EX_3G:
-                    builder.append("EX-SDI 3G");
+                    if (mSignalInfo.height == 1080) {
+                        builder.append("EX-SDI [3G]");
+                    } else if (mSignalInfo.height == 1440) {
+                        builder.append("EX-SDI [4M]");
+                    } else {
+                        builder.append("EX-SDI [3G]");
+                    }
                     break;
 
                 case SdiInput.MODE_EX2:
-                    builder.append("EX-SDI");
+                    builder.append("EX-SDI [2.0]");
                     break;
 
                 case SdiInput.MODE_EX_4K:
-                    builder.append("EX-SDI 4K");
+                    builder.append("EX-SDI [4K]");
                     break;
 
                 case SdiInput.MODE_EX_TDM:
-                    builder.append("EX-SDI TDM");
-
+                    builder.append("EX-SDI [TDM]");
+                    restartTdrCheck();
                     break;
             }
             if (SdiInput.MODE_EX_TDM == signalInfo.mode) {
@@ -863,6 +1037,7 @@ public class MainActivity extends AppCompatActivity
 
             switch (signalInfo.std) {
                 case 0:
+//                    Log.d(TAG, "CVBS INPUT: " + cvbs_Input);
                     if (cvbs_Input == -1) {
                         builder.append("TVI");
                     } else {
@@ -963,14 +1138,48 @@ public class MainActivity extends AppCompatActivity
 
         mSignalInfoView.setText(builder.toString());
         mSignalInfoView.setVisibility(View.VISIBLE);
+        mMenuAdaptor.notifyDataSetChanged();
+//        Log.d(TAG, "showSignalInfo mMode: " + mMode + " PoCMode: " + pocMode);
+        switch (mMode) {
+            case MODE_POC:
+                if (pocMode) {
+                    mNoSignalView.setVisibility(View.INVISIBLE);
+                } else {
+                    hidePocDialog();
+                    hidePocOverlay();
+                    mNoSignalView.setVisibility(noSignal);
+                }
+                break;
+            case MODE_VIEW:
+            case MODE_PTZ:
 
-        mNoSignalView.setVisibility(noSignal);
+                if (pocMode) {
+                    mNoSignalView.setVisibility(View.INVISIBLE);
+                } else {
+                    hidePocDialog();
+                    hidePocOverlay();
+                    hideLevelMeter();
+                    mNoSignalView.setVisibility(noSignal);
+                }
+                break;
+            case MODE_SNAPSHOT:
+            case MODE_RECORD:
+                if (pocMode) {
+                    mNoSignalView.setVisibility(View.INVISIBLE);
+                } else {
+                    hidePocDialog();
+                    hidePocOverlay();
+                    mNoSignalView.setVisibility(noSignal);
+                }
+                break;
+        }
         if (!mSource.is(VideoSource.HDMI)) {
 
             if (isLevelMeterEnabled(PreferenceManager.getDefaultSharedPreferences(this))) {
 
                 showLevelMeter();
                 clearLevelMeter();
+
 
             } else {
                 hideLevelMeter();
@@ -980,6 +1189,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void hideSignalInfo() {
+//        Log.d(TAG, "HideSignalInfo");
         mSignalInfoView.removeCallbacks(mHideSignalInfoTask);
         mHideSignalInfoTask = null;
         mSignalInfoView.setVisibility(View.INVISIBLE);
@@ -1001,7 +1211,6 @@ public class MainActivity extends AppCompatActivity
 
         switch (sourceId) {
             case VideoSource.SDI:
-//                Log.d(TAG, "SDI state = " + signalInfo.mode);
                 try {
                     mMcuControl.notifySdiLockState(signalInfo.mode);
                 } catch (IOException | InterruptedException e) {
@@ -1017,7 +1226,6 @@ public class MainActivity extends AppCompatActivity
                 try {
                     mMcuControl.sendInputSourceMode(sourceId);
                     mMcuControl.setFormat(signalInfo.mode);
-//                    Log.d(TAG, "Signal Info Mode: " + signalInfo.mode);
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -1027,7 +1235,7 @@ public class MainActivity extends AppCompatActivity
 
 //--------------------------------------------------------------------------------------------------
 
-    public void startLevelMeterHandler() {
+    public void startMcuHandler() {
 
         final FragmentManager fragmentManager = getSupportFragmentManager();
         LevelMeterFragment levelMeterFragment = null;
@@ -1053,7 +1261,57 @@ public class MainActivity extends AppCompatActivity
                     .commit();
 
 
-            LevelMeterListener mLevelMeterListener = new LevelMeterListener() {
+            McuDataListener mMcuDataListener = new McuDataListener() {
+                @Override
+                public void onPocStarted() {
+//                Log.d(TAG, "onPocStarted()");
+                    try {
+                        opt.writeBytes("echo 0 > /sys/class/gpio_sw/PE11/data\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    runOnUiThread(() -> {
+                        showPocDialog();
+                        showPocOverlay();
+                        inputPocState(0);
+                    });
+                    // 전원 공급 모드로 바꿈
+
+                }
+
+                @Override
+                public void onPocStateChange(final int state) {
+//                Log.d(TAG, "PoC state = " + state);
+
+                    runOnUiThread(() -> {
+//                    setPocState(state);
+                        inputPocState(state);
+                        if (state == STATE_LINK_OK) {
+                            setPocMode(MODE_POWER);
+                            showPocDialog();
+                        } else if (state >= STATE_C_OPEN) {
+                            setPocMode(MODE_CHECK);
+                            showPocDialog();
+                        }
+                    });
+                }
+
+                @Override
+                public void onPocStopped() {
+//                Log.d(TAG, "onPocStopped()");
+                }
+
+                @Override
+                public void onPocNotSupported() {
+                    //Log.d(TAG, "onPocNotSupported()");
+                    runOnUiThread(() -> {
+                        //showToast(R.string.poc_not_support);
+                        hidePocDialog();
+                        hidePocOverlay();
+                        showPocNotSupportDialog();
+                    });
+                }
+
                 @Override
                 public void onLevelChanged(final int level, final int value) {
                     runOnUiThread(() -> {
@@ -1063,12 +1321,10 @@ public class MainActivity extends AppCompatActivity
                             switch (level) {
                                 case LEVEL_FOCUS:
                                     if (!hasNoSignal(mSignalInfo)) {
-                                        if ((sourceId.equals(VideoSource.TVI)) && ((mSignalInfo.mode == 0x04) || (mSignalInfo.mode == 0x05))) {
+                                        if ((sourceId.equals(VideoSource.TVI)) && ((mSignalInfo.mode == 0x04) || (mSignalInfo.mode == 0x05) || (mSignalInfo.mode == 0x00) || (mSignalInfo.mode == 0x01))) {
                                             break;
                                         }
                                         levelMeterFragment1.updateFocusLevel(value);
-//                                        Log.d(TAG, ""+getCurrentFocus());
-
 //                                        Log.w(TAG, "onLevelChanged(" + level + ", " + value + ")");
                                     }
                                     break;
@@ -1093,7 +1349,7 @@ public class MainActivity extends AppCompatActivity
                     });
                 }
             };
-            mMcuControl.addReceiveBufferListener(mLevelMeterListener);
+            mMcuControl.addReceiveBufferListener(mMcuDataListener);
 
 
         }
@@ -1104,15 +1360,11 @@ public class MainActivity extends AppCompatActivity
      */
     private void showLevelMeter() {
         boolean input;
-
         input = sourceId != null;
 
         if (input && mSignalInfo.signal) {
             switch (sourceId) {
                 case VideoSource.SDI:
-                    startLevelMeter();
-                    break;
-
                 case VideoSource.AUTO:
                 case VideoSource.AHD:
                 case VideoSource.TVI:
@@ -1120,7 +1372,6 @@ public class MainActivity extends AppCompatActivity
                 case VideoSource.CVBS:
                     startLevelMeter();
                     break;
-
                 default:
                     hideLevelMeter();
                     break;
@@ -1138,6 +1389,7 @@ public class MainActivity extends AppCompatActivity
     private void startLevelMeter() {
         if (!hasNoSignal(mSignalInfo)) {
             try {
+                setLevelMeter = true;
 //                opt.writeBytes("echo 1 > /sys/class/gpio_sw/PE13/data\n");
                 mMcuControl.startLevelMeter();
 
@@ -1157,6 +1409,8 @@ public class MainActivity extends AppCompatActivity
 //        if (!initSource.equals(VideoSource.HDMI)) {
         try {
 //                opt.writeBytes("echo 0 > /sys/class/gpio_sw/PE13/data\n");
+            setLevelMeter = false;
+
             mMcuControl.stopLevelMeter();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -1172,6 +1426,7 @@ public class MainActivity extends AppCompatActivity
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(LEVEL_METER_FRAGMENT_TAG);
         if (fragment instanceof LevelMeterFragment) {
             LevelMeterFragment levelMeterFragment = (LevelMeterFragment) fragment;
+//            Log.d(TAG, "sourceId: " + sourceId + " mSignalInfo.mode: " + mSignalInfo.mode);
 
             if (sourceId.equals(VideoSource.SDI)) {
                 levelMeterFragment.updateSignalLevel(mSignalInfo != null && mSignalInfo.signal, 0);
@@ -1180,7 +1435,7 @@ public class MainActivity extends AppCompatActivity
                 levelMeterFragment.updateSyncLevel(0);
             }
 
-            if ((sourceId.equals(VideoSource.TVI)) && ((mSignalInfo.mode == 0x04) || (mSignalInfo.mode == 0x05))) {
+            if ((sourceId.equals(VideoSource.TVI)) && ((mSignalInfo.mode == 0x04) || (mSignalInfo.mode == 0x05) || (mSignalInfo.mode == 0x00) || (mSignalInfo.mode == 0x01))) {
                 levelMeterFragment.setFocusLevelNa();
             } else {
                 levelMeterFragment.resetFocusLevel(0);
@@ -1189,7 +1444,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void resetFocusLevel() {
-        if ((mSource.is(VideoSource.TVI)) && ((mSignalInfo.mode == 0x04) || (mSignalInfo.mode == 0x05)))
+        if ((sourceId.equals(VideoSource.TVI)) && ((mSignalInfo.mode == 0x04) || (mSignalInfo.mode == 0x05) || (mSignalInfo.mode == 0x00) || (mSignalInfo.mode == 0x01)))
             return;
 
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(LEVEL_METER_FRAGMENT_TAG);
@@ -1201,8 +1456,12 @@ public class MainActivity extends AppCompatActivity
 
     private void showTdmSetup() {
         mTdmSetupView.setVisibility(View.VISIBLE);
-        tdm_ch1.requestFocus();
-        tdm_ch1.setFocusableInTouchMode(false);
+
+//        tdm_ch2.setFocusableInTouchMode(true);
+//        tdm_ch3.setFocusableInTouchMode(true);
+//        tdm_ch4.setFocusableInTouchMode(true);
+//        tdm_ch5.setFocusableInTouchMode(true);
+
 
 //        tdm_ch1.setEnabled(false);
 //        tdm_ch2.setEnabled(false);
@@ -1216,16 +1475,12 @@ public class MainActivity extends AppCompatActivity
 
     @SuppressLint("SetTextI18n")
     private void updateTdmSetup(boolean live) {
+//        Log.d(TAG, "updateTdmSetup: " + live);
         SdiInput sdiInput = (SdiInput) mVideoInput;
         SdiInput.TDMValue tdmValue = sdiInput.getTdm();
         int stat;
         int resId;
-//        Log.d(TAG, "TDM CH Select: " + tdmValue.select);
-//        Log.d(TAG, "TDM State: " + tdmValue.state);
-//        Log.d(TAG, "TDM CH1: " + tdmValue.ch1);
-//        Log.d(TAG, "TDM CH2: " + tdmValue.ch2);
-//        Log.d(TAG, "TDM CH3: " + tdmValue.ch3);
-//        Log.d(TAG, "TDM CH4: " + tdmValue.ch4);
+        int select;
         if (!live) {
             for (int i = 1; i < 9; i++) {
                 resId = getResources().getIdentifier("tdm_ch" + i, "id", "com.sscctv.seeeyesmonitor");
@@ -1238,37 +1493,30 @@ public class MainActivity extends AppCompatActivity
                     case 2:
                         tdm_ch2.setText("CH 2:   -   ");
                         tdm_ch2.setEnabled(false);
-
                         break;
                     case 3:
                         tdm_ch3.setText("CH 3:   -   ");
                         tdm_ch3.setEnabled(false);
-
                         break;
                     case 4:
                         tdm_ch4.setText("CH 4:   -   ");
                         tdm_ch4.setEnabled(false);
-
                         break;
                     case 5:
                         tdm_ch5.setText("CH 5:   -   ");
                         tdm_ch5.setEnabled(false);
-
                         break;
                     case 6:
                         tdm_ch6.setText("CH 6:   -   ");
                         tdm_ch6.setEnabled(false);
-
                         break;
                     case 7:
                         tdm_ch7.setText("CH 7:   -   ");
                         tdm_ch7.setEnabled(false);
-
                         break;
                     case 8:
                         tdm_ch8.setText("CH 8:   -   ");
                         tdm_ch8.setEnabled(false);
-
                         break;
 
                 }
@@ -1276,19 +1524,40 @@ public class MainActivity extends AppCompatActivity
         } else {
             for (int i = 0; i < 8; i++) {
                 stat = getBit(tdmValue.state, i);
+                select = tdmValue.select;
+//                Log.d(TAG, "TDM Channel: " + i + " Stat: " + stat + " Select: " + select);
                 switch (i + 1) {
                     case 1:
                         if (stat == 0) {
+//                            Log.w(TAG, "TDM CH1 = OFF");
                             tdm_ch1.setText("CH 1:   -   ");
                             tdm_ch1.setTextColor(Color.GRAY);
                             tdm_ch1.setEnabled(false);
+                            if (select == 1) {
+//                                Log.w(TAG, "TDM CH1 = ON & Select  " + mNoSignalView.getVisibility());
+                                if(mNoSignalView.getVisibility() == View.INVISIBLE){
+//                                    Log.w(TAG, "mNoSignalView.setVisibility(View.VISIBLE)  " + mNoSignalView.getVisibility());
 
+                                    mNoSignalView.setVisibility(View.VISIBLE);
+                                }
+                            }
                         } else {
+//                            Log.w(TAG, "TDM CH1 = ON");
+
                             int value = tdmValue.ch1;
                             tdm_ch1.setText("CH 1:   " + value);
-                            tdm_ch1.setTextColor(Color.GREEN);
                             tdm_ch1.setEnabled(true);
 
+
+                            if (select == 1) {
+                                tdm_ch1.setTextColor(Color.CYAN);
+                                if (mNoSignalView.getVisibility() == View.VISIBLE) {
+                                    mNoSignalView.setVisibility(View.INVISIBLE);
+                                showSignalInfo(mSignalInfo);
+                                }
+                            } else {
+                                tdm_ch1.setTextColor(Color.GREEN);
+                            }
                         }
                         break;
                     case 2:
@@ -1296,13 +1565,25 @@ public class MainActivity extends AppCompatActivity
                             tdm_ch2.setText("CH 2:   -   ");
                             tdm_ch2.setTextColor(Color.GRAY);
                             tdm_ch2.setEnabled(false);
-
+                            if (select == 2) {
+                                if(mNoSignalView.getVisibility() != View.VISIBLE){
+                                    mNoSignalView.setVisibility(View.VISIBLE);
+                                }
+                            }
                         } else {
                             int value = tdmValue.ch2;
                             tdm_ch2.setText("CH 2:   " + value);
-                            tdm_ch2.setTextColor(Color.GREEN);
                             tdm_ch2.setEnabled(true);
 
+                            if (select == 2) {
+                                tdm_ch2.setTextColor(Color.CYAN);
+                                if (mNoSignalView.getVisibility() == View.VISIBLE) {
+                                    mNoSignalView.setVisibility(View.INVISIBLE);
+                                    showSignalInfo(mSignalInfo);
+                                }
+                            } else {
+                                tdm_ch2.setTextColor(Color.GREEN);
+                            }
                         }
                         break;
                     case 3:
@@ -1310,13 +1591,25 @@ public class MainActivity extends AppCompatActivity
                             tdm_ch3.setText("CH 3:   -   ");
                             tdm_ch3.setTextColor(Color.GRAY);
                             tdm_ch3.setEnabled(false);
-
+                             if (select == 3) {
+                                if(mNoSignalView.getVisibility() != View.VISIBLE){
+                                    mNoSignalView.setVisibility(View.VISIBLE);
+                                }
+                            }
                         } else {
                             int value = tdmValue.ch3;
                             tdm_ch3.setText("CH 3:   " + value);
-                            tdm_ch3.setTextColor(Color.GREEN);
                             tdm_ch3.setEnabled(true);
 
+                            if (select == 3) {
+                                tdm_ch3.setTextColor(Color.CYAN);
+                                if (mNoSignalView.getVisibility() == View.VISIBLE) {
+                                    mNoSignalView.setVisibility(View.INVISIBLE);
+                                    showSignalInfo(mSignalInfo);
+                                }
+                            } else {
+                                tdm_ch3.setTextColor(Color.GREEN);
+                            }
                         }
                         break;
                     case 4:
@@ -1324,13 +1617,25 @@ public class MainActivity extends AppCompatActivity
                             tdm_ch4.setText("CH 4:   -   ");
                             tdm_ch4.setTextColor(Color.GRAY);
                             tdm_ch4.setEnabled(false);
-
+                            if (select == 4) {
+                                if(mNoSignalView.getVisibility() != View.VISIBLE){
+                                    mNoSignalView.setVisibility(View.VISIBLE);
+                                }
+                            }
                         } else {
                             int value = tdmValue.ch4;
                             tdm_ch4.setText("CH 4:   " + value);
-                            tdm_ch4.setTextColor(Color.GREEN);
                             tdm_ch4.setEnabled(true);
 
+                            if (select == 4) {
+                                tdm_ch4.setTextColor(Color.CYAN);
+                                if (mNoSignalView.getVisibility() == View.VISIBLE) {
+                                    mNoSignalView.setVisibility(View.INVISIBLE);
+                                    showSignalInfo(mSignalInfo);
+                                }
+                            } else {
+                                tdm_ch4.setTextColor(Color.GREEN);
+                            }
                         }
                         break;
                     case 5:
@@ -1338,13 +1643,25 @@ public class MainActivity extends AppCompatActivity
                             tdm_ch5.setText("CH 5:   -   ");
                             tdm_ch5.setTextColor(Color.GRAY);
                             tdm_ch5.setEnabled(false);
-
+                            if (select == 5) {
+                                if(mNoSignalView.getVisibility() != View.VISIBLE){
+                                    mNoSignalView.setVisibility(View.VISIBLE);
+                                }
+                            }
                         } else {
                             int value = tdmValue.ch5;
                             tdm_ch5.setText("CH 5:   " + value);
-                            tdm_ch5.setTextColor(Color.GREEN);
                             tdm_ch5.setEnabled(true);
 
+                            if (select == 5) {
+                                tdm_ch5.setTextColor(Color.CYAN);
+                                if (mNoSignalView.getVisibility() == View.VISIBLE) {
+                                    mNoSignalView.setVisibility(View.INVISIBLE);
+                                    showSignalInfo(mSignalInfo);
+                                }
+                            } else {
+                                tdm_ch5.setTextColor(Color.GREEN);
+                            }
                         }
                         break;
                     case 6:
@@ -1352,27 +1669,51 @@ public class MainActivity extends AppCompatActivity
                             tdm_ch6.setText("CH 6:   -   ");
                             tdm_ch6.setTextColor(Color.GRAY);
                             tdm_ch6.setEnabled(false);
-
+                            if (select == 6) {
+                                if(mNoSignalView.getVisibility() != View.VISIBLE){
+                                    mNoSignalView.setVisibility(View.VISIBLE);
+                                }
+                            }
                         } else {
                             int value = tdmValue.ch6;
                             tdm_ch6.setText("CH 6:   " + value);
-                            tdm_ch6.setTextColor(Color.GREEN);
                             tdm_ch6.setEnabled(true);
 
+                            if (select == 6) {
+                                tdm_ch6.setTextColor(Color.CYAN);
+                                if (mNoSignalView.getVisibility() == View.VISIBLE) {
+                                    mNoSignalView.setVisibility(View.INVISIBLE);
+                                    showSignalInfo(mSignalInfo);
+                                }
+                            } else {
+                                tdm_ch6.setTextColor(Color.GREEN);
+                            }
                         }
                         break;
                     case 7:
                         if (stat == 0) {
                             tdm_ch7.setText("CH 7:   -   ");
-                            tdm_ch6.setTextColor(Color.GRAY);
+                            tdm_ch7.setTextColor(Color.GRAY);
                             tdm_ch7.setEnabled(false);
-
+                            if (select == 7) {
+                                if(mNoSignalView.getVisibility() != View.VISIBLE){
+                                    mNoSignalView.setVisibility(View.VISIBLE);
+                                }
+                            }
                         } else {
                             int value = tdmValue.ch7;
                             tdm_ch7.setText("CH 7:   " + value);
-                            tdm_ch6.setTextColor(Color.GREEN);
                             tdm_ch7.setEnabled(true);
 
+                            if (select == 7) {
+                                tdm_ch7.setTextColor(Color.CYAN);
+                                if (mNoSignalView.getVisibility() == View.VISIBLE) {
+                                    mNoSignalView.setVisibility(View.INVISIBLE);
+                                    showSignalInfo(mSignalInfo);
+                                }
+                            } else {
+                                tdm_ch7.setTextColor(Color.GREEN);
+                            }
                         }
                         break;
                     case 8:
@@ -1380,19 +1721,33 @@ public class MainActivity extends AppCompatActivity
                             tdm_ch8.setText("CH 8:   -   ");
                             tdm_ch8.setTextColor(Color.GRAY);
                             tdm_ch8.setEnabled(false);
-
+                            if (select == 8) {
+                                if(mNoSignalView.getVisibility() != View.VISIBLE){
+                                    mNoSignalView.setVisibility(View.VISIBLE);
+                                }
+                            }
                         } else {
                             int value = tdmValue.ch8;
                             tdm_ch8.setText("CH 8:   " + value);
-                            tdm_ch8.setTextColor(Color.GREEN);
                             tdm_ch8.setEnabled(true);
 
+                            if (select == 8) {
+                                tdm_ch8.setTextColor(Color.CYAN);
+                                if (mNoSignalView.getVisibility() == View.VISIBLE) {
+                                    mNoSignalView.setVisibility(View.INVISIBLE);
+                                    showSignalInfo(mSignalInfo);
+                                }
+                            } else {
+                                tdm_ch8.setTextColor(Color.GREEN);
+                            }
                         }
                         break;
+
                 }
             }
         }
     }
+
 
     private void restartTdrCheck() {
         updateTdmSetup(false);
@@ -1403,32 +1758,35 @@ public class MainActivity extends AppCompatActivity
 
             }
         };
-        Timer timer = new Timer(true);
-        timerTask = new TimerTask() {
+        TimerTask tdmTask = new TimerTask() {
             @Override
             public void run() {
 //                Log.v(TAG, "timer run");
                 Message msg = handler.obtainMessage();
                 handler.sendMessage(msg);
-//                Log.d(TAG, "Focus  - - - - - " + getCurrentFocus());
-            }
-
-            @Override
-            public boolean cancel() {
-//                Log.v(TAG, "timer cancel");
-                return super.cancel();
+//                Log.d(TAG, "CurrentFocus: " + getCurrentFocus());
             }
         };
-        timer.schedule(timerTask, 0, 1000);
+
+        if (tdmTimer == null) {
+            tdmTimer = new Timer();
+            tdmTimer.schedule(tdmTask, 0, 500);
+        }
+
 
     }
 
     private boolean hideTdmSetup() {
-        if (timerTask != null) {
-            timerTask.cancel();
-            timerTask = null;
+//        Log.d(TAG, "hideTdmSetup");
+
+        btnChk = true;
+        if (tdmTimer != null) {
+            tdmTimer.cancel();
+            tdmTimer = null;
             mTdmSetupView.setVisibility(View.INVISIBLE);
-            longKeyChkCnt = 0;
+//            Log.d(TAG, "hideTdmSetup Timer: " + tdmTimer);
+
+//            longKeyChkCnt = 0;
 //            mTdmSetupView = null;
             return true;
 
@@ -1547,11 +1905,15 @@ public class MainActivity extends AppCompatActivity
         mDrawerButton.setFocusable(false);
 
         mDrawer = findViewById(R.id.drawer_layout);
+        mDrawer.setFocusable(true);
+        mDrawer.setFocusableInTouchMode(false);
         mDrawer.setScrimColor(Color.TRANSPARENT);
         mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         mDrawer.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
+//                unlockMenu();
+
                 // 오버레이 레이아웃의 모든 내용을 서랍이 열리면 숨게 함
                 mOverlayView.setAlpha(1 - slideOffset);
                 mDrawerButton.setAlpha(1 - slideOffset);
@@ -1559,24 +1921,32 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onDrawerOpened(@NonNull View drawerView) {
-
+//                Log.d(TAG, "onDrawerOpened");
+                if (mMode == MODE_PTZ) {
+                    mDrawerButton.requestFocus();
+                }
+                hideSignalInfo();
+                onPtzMenu = true;
 
             }
 
             @Override
             public void onDrawerClosed(@NonNull View drawerView) {
-                //Log.d(TAG, "onDrawerClosed="+drawerView);
                 // 열려 있는 서브메뉴를 없애고 모드 전환을 마친다.
+//                Log.d(TAG, "onDrawerClosed");
 //                mPtzOverlay.protocolSet();
                 setMenuFragment(null);
-
                 unlockMenu();
-
+//                lockMenu();
                 switchToPendingMode();
+                new Handler().postDelayed(() -> {
+                    onPtzMenu = false;
+                }, 100);
             }
 
             @Override
             public void onDrawerStateChanged(int newState) {
+//                Log.d(TAG, "onDrawerStateChanged = " + newState);
 
             }
         });
@@ -1594,11 +1964,35 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public boolean isEnabled(int position) {
+//                Log.d(TAG, "position: " + position + " Mode: " + mMode);
+
                 if (position == 0) {
                     return supportsPTZ();
                 }
-                return (position != 4) || supportsPoC();        // POC 기능 사용할 경우
+                if(getLocale.equals("ja")) {
+                    if (position == 4) {
+                        if (!supportsPoC()) {
+                            return false;
+                        }
+                        return (mMode == MODE_VIEW) || (mMode == MODE_POC);
+                    }
+                } else {
+                    return (position != 4);
+                }
+
+//                if (position == 4) {
+//                    if (supportsPoC()) {
+//
+//                        return mMode == MODE_VIEW;
+//                    } else {
+//                        Log.d(TAG, "supportsPoC1: " + position + " Mode: " + mMode);
+//
+//                        return false;
+//                    }
+//                }
+                return true;
                 //return (position != 4);                       // POC 기능 사용하지 않는 경우
+//                return true;
             }
 
             @NonNull
@@ -1614,7 +2008,6 @@ public class MainActivity extends AppCompatActivity
                 // isEnabled() == false 라도 뷰가 자동으로 disable 되지 않는다.
                 // 원래 그런지 모르겠지만 여기서 수동으로 enable 상태를 업데이트 해 주어야 한다.
                 view.setEnabled(mDrawerList.isEnabled() && isEnabled(position));
-
                 return view;
             }
         };
@@ -1623,7 +2016,9 @@ public class MainActivity extends AppCompatActivity
         mDrawerList.setOnItemSelectedListener(new ListView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                //Log.d(TAG, "onItemSelected="+position);
+                index = position;
+//                Log.d(TAG, "onItemSelected = " + position);
+
                 //selectMenu(position);
             }
 
@@ -1633,9 +2028,12 @@ public class MainActivity extends AppCompatActivity
             }
         });
         mDrawerList.setOnItemClickListener((parent, view, position, id) -> {
-            //Log.d(TAG, "onItemClick="+position);
+            index = position;
+//            Log.d(TAG, "setOnItemClickListener = " + position);
+
             clickMenu(position);
         });
+        mDrawerList.setFastScrollEnabled(true);
 
 
         mPtzSubmenuFragment = PtzMenuFragment.newInstance(supportsUTC());
@@ -1655,17 +2053,46 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
+     * /**
      * 서랍을 연다.
      *
      * @return 서랍을 열었으면 true, 아니면 false
      */
     private boolean openDrawer() {
+
+
+        if (isRecording()) {
+            stopRecording();
+        }
+
         if (!isDrawerOpen()) {
-//            if (isRecording()) {
-//                stopRecording();
-//            }
+
             mDrawer.openDrawer(mMainMenu);
-                    return true;
+
+            mDrawerList.setFocusable(true);
+            mDrawerList.setFocusableInTouchMode(true);
+
+
+//            Log.d(TAG, "onClick: Drawer1 = " + mDrawerList.getFirstVisiblePosition());
+//            Log.d(TAG, "openDrawer Focus: " + getCurrentFocus());
+
+            mDrawerList.requestFocus();
+            mDrawerList.requestFocusFromTouch();  //This is critical
+
+//            Log.d(TAG, "openDrawer Focus1: " + index);
+
+            mDrawerList.setSelectionFromTop(index, 0);
+            mDrawerList.setSelection(index);
+//            Log.d(TAG, "onClick: Drawer2 = " + mDrawerList.getFirstVisiblePosition());
+//            Log.d(TAG, "Test: " + mDrawerList.getSelectedItemPosition());
+//            Log.d(TAG, "openDrawer Focus2 = " + getCurrentFocus());
+
+            if(mMode != MODE_PTZ) {
+                stopPtzMode();
+            }
+
+
+            return true;
         } else {
             return false;
         }
@@ -1678,9 +2105,16 @@ public class MainActivity extends AppCompatActivity
      */
     private boolean closeDrawer() {
         if (isDrawerOpen()) {
+
             mDrawer.closeDrawer(mMainMenu);
+
+//            mDrawerList.clearFocus();
+//            mDrawerList.clearChoices();
+
 //            mDrawer.setFocusable(false);
 //            mDrawer.setFocusableInTouchMode(false);
+//            Log.d(TAG, "Focus: " + getCurrentFocus());
+
             return true;
         } else {
             return false;
@@ -1694,8 +2128,10 @@ public class MainActivity extends AppCompatActivity
      */
     @Override
     public void onBackPressed() {
-        //Log.d(TAG, "onBackPressed()");
+//        Log.d(TAG, "onBackPressed: " + mMode);
+
         if (!closeDrawer()) {
+
             switch (mMode) {
                 case MODE_VIEW:
                     if (mSource.is(VideoSource.SDI)) {
@@ -1704,12 +2140,16 @@ public class MainActivity extends AppCompatActivity
                         }
                         if (hideTdmSetup()) {
                             btnChk = true;
-                            longKeyChkCnt = 0;
-//                            Log.d(TAG, "Focus: " + getCurrentFocus());
+//                            longKeyChkCnt = 0;
                             return;
                         }
                     }
 
+                    if (pocMode) {
+                        exitPocMode();
+                        enterVideoMode();
+                        return;
+                    }
 
                     break;
 
@@ -1725,11 +2165,16 @@ public class MainActivity extends AppCompatActivity
                     return;
 
                 case MODE_POC:
+                    if (hideCrcStats()) {
+                        return;
+                    }
                     exitPocMode();
                     enterVideoMode();
+
                     return;
             }
-
+//            Log.d(TAG, "onBackPressed : " + mMode);
+//            Log.d(TAG, "onBackPressed Focus: " + getCurrentFocus());
             super.onBackPressed();
         }
     }
@@ -1756,29 +2201,18 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyDown="+keyCode);
+//        Log.d(TAG, "onKeyDown=" + keyCode);
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
-                if (mSignalInfo.signal) {
-                    int upVolume = audioManager.getStreamVolume(STREAM_MUSIC);
-                    if (upVolume < 15) {
-                        audioManager.setParameters("dac_volume=" + (upVolume + 1));
-                    }
-//                    Log.d(TAG, "Audio Volume: " + audioManager.getStreamVolume(STREAM_MUSIC));
-                }
+
                 break;
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (mSignalInfo.signal) {
-                    int downVolume = audioManager.getStreamVolume(STREAM_MUSIC);
-                    if (downVolume > 0) {
-                        audioManager.setParameters("dac_volume=" + (downVolume - 1));
-                    }
-//                    Log.d(TAG, "Audio Volume: " + audioManager.getStreamVolume(STREAM_MUSIC));
-                }
+
                 break;
             case KeyEvent.KEYCODE_ENTER:
                 switch (mMode) {
                     case MODE_VIEW:
+                    case MODE_POC:
                         if (mSource.is(VideoSource.SDI)) {
                             longKeyChkCnt++;
                             if (longKeyChkCnt == 5) {
@@ -1797,22 +2231,30 @@ public class MainActivity extends AppCompatActivity
                 switch (mMode) {
                     case MODE_VIEW:
                         if (SdiInput.MODE_EX_TDM == mSignalInfo.mode) {
-                            longKeyChkCnt++;
-                            if (longKeyChkCnt == 2) {
-                                if (mSignalInfo != null && !hasNoSignal(mSignalInfo)) {
+//                            longKeyChkCnt++;
+//                            if (longKeyChkCnt == 3) {
+                            if (!hasNoSignal(mSignalInfo)) {
+                                if (btnChk) {
+                                    btnChk = false;
                                     showTdmSetup();
                                     restartTdrCheck();
+                                    tdm_ch1.requestFocus();
+                                    return true;
                                 }
                             }
+//                            }
                         }
                 }
                 if (forwardKeyToControlFragment(keyCode, event)) {
                     return true;
                 }
-                Log.d(TAG, "onKeyDown: " + mMode + " , " + getCurrentFocus());
 
                 break;
+            case KeyEvent.KEYCODE_MENU:
             case KeyEvent.KEYCODE_BUTTON_MODE:
+                if (forwardKeyToControlFragment(keyCode, event)) {
+                    return true;
+                }
             case KeyEvent.KEYCODE_DPAD_LEFT:
             case KeyEvent.KEYCODE_DPAD_RIGHT:
 
@@ -1828,25 +2270,29 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyUp="+keyCode+", mMode="+mMode);
-//        Log.d(TAG, "Focus: " + getCurrentFocus());
+//        Log.d(TAG, "onKeyUp=" + keyCode);
+        Log.d(TAG, "Focus: " + getCurrentFocus() + " btnchk: " + btnChk);
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
 //                if (isPlaying)
 //                    audioManager.setParameters("dac_volume=" + audioManager.getStreamVolume(STREAM_MUSIC));
                 break;
-
             case KeyEvent.KEYCODE_MENU:
                 if (forwardKeyToControlFragment(keyCode, event)) {
                     return true;
                 }
 
                 // MENU 키를 눌렀을 때 메인 메뉴가 닫혀 있으면 메뉴를 연다.
-                if (openDrawer()) {
-                    mDrawerList.requestFocus();
-                    return true;
+                if (!onPocDialog) {
+//                    Log.d(TAG, "onPocDialog : " + onPocDialog);
+                    if (openDrawer()) {
+//                        Log.d(TAG, "KEYCODE_DPAD Focus: " + mDrawerList.getSelectedItemPosition());
+
+                        return true;
+                    }
                 }
+
                 // TO DO
                 return true;
 
@@ -1854,6 +2300,7 @@ public class MainActivity extends AppCompatActivity
                 if (!isDrawerOpen()) {
                     switch (mMode) {
                         case MODE_VIEW:
+                        case MODE_POC:
                             if (isLevelMeterEnabled(PreferenceManager.getDefaultSharedPreferences(this))) {
                                 if (!mSource.is(VideoSource.HDMI)) {
                                     if (mSource.is(VideoSource.SDI)) {
@@ -1874,10 +2321,14 @@ public class MainActivity extends AppCompatActivity
                             return true;
                     }
                 }
+            case KeyEvent.KEYCODE_BUTTON_MODE:
+
             case KeyEvent.KEYCODE_DPAD_UP:
             case KeyEvent.KEYCODE_DPAD_DOWN:
             case KeyEvent.KEYCODE_DPAD_LEFT:
             case KeyEvent.KEYCODE_DPAD_RIGHT:
+//                Log.d(TAG, "KEYCODE_DPAD Focus: " + mDrawerList.getSelectedItemPosition());
+
             default:
                 if (forwardKeyToControlFragment(keyCode, event)) {
                     return true;
@@ -1889,7 +2340,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void onClick(View view) {
-//        Log.d(TAG, "onClick()");
+//        Log.d(TAG, "onClick()" + view.getId());
 
         if (sourceId.equals(VideoSource.SDI)) {
             _sdiInput = (SdiInput) mVideoInput;
@@ -1897,9 +2348,9 @@ public class MainActivity extends AppCompatActivity
         }
         switch (view.getId()) {
             case R.id.drawer_button:
-                Log.d(TAG, "onClick: Drawer");
+//                Log.d(TAG, "onClick: Drawer = " + getCurrentFocus());
                 openDrawer();
-
+//                mDrawerList.requestFocus();
                 break;
             case R.id.surface:
                 break;
@@ -1908,9 +2359,12 @@ public class MainActivity extends AppCompatActivity
                     btnChk = false;
                     showTdmSetup();
                     restartTdrCheck();
+                    tdm_ch1.setFocusableInTouchMode(true);
                     tdm_ch1.requestFocus();
+                    if (tdm_ch1.isFocusableInTouchMode()) {
+                        tdm_ch1.setFocusableInTouchMode(false);
+                    }
                 } else {
-                    btnChk = true;
                     mTdmSetupView.setVisibility(View.INVISIBLE);
                     hideTdmSetup();
                 }
@@ -1918,31 +2372,72 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.tdm_ch1:
                 _sdiInput.setTdm('1');
+                tdm_ch1.setFocusableInTouchMode(true);
+                tdm_ch1.requestFocus();
+//                if(tdm_ch1.isFocusableInTouchMode()) {
+//                    tdm_ch1.setFocusableInTouchMode(false);
+//                }
                 break;
             case R.id.tdm_ch2:
                 _sdiInput.setTdm('2');
+                tdm_ch2.setFocusableInTouchMode(true);
+                tdm_ch2.requestFocus();
+                if (tdm_ch2.isFocusableInTouchMode()) {
+                    tdm_ch2.setFocusableInTouchMode(false);
+                }
                 break;
             case R.id.tdm_ch3:
                 _sdiInput.setTdm('3');
+                tdm_ch3.setFocusableInTouchMode(true);
+                tdm_ch3.requestFocus();
+                if (tdm_ch3.isFocusableInTouchMode()) {
+                    tdm_ch3.setFocusableInTouchMode(false);
+                }
                 break;
             case R.id.tdm_ch4:
                 _sdiInput.setTdm('4');
+                tdm_ch4.setFocusableInTouchMode(true);
+                tdm_ch4.requestFocus();
+                if (tdm_ch4.isFocusableInTouchMode()) {
+                    tdm_ch4.setFocusableInTouchMode(false);
+                }
                 break;
             case R.id.tdm_ch5:
                 _sdiInput.setTdm('5');
+                tdm_ch5.setFocusableInTouchMode(true);
+                tdm_ch5.requestFocus();
+                if (tdm_ch5.isFocusableInTouchMode()) {
+                    tdm_ch5.setFocusableInTouchMode(false);
+                }
                 break;
             case R.id.tdm_ch6:
                 _sdiInput.setTdm('6');
+                tdm_ch6.setFocusableInTouchMode(true);
+                tdm_ch6.requestFocus();
+                if (tdm_ch6.isFocusableInTouchMode()) {
+                    tdm_ch6.setFocusableInTouchMode(false);
+                }
                 break;
             case R.id.tdm_ch7:
                 _sdiInput.setTdm('7');
+                tdm_ch7.setFocusableInTouchMode(true);
+                tdm_ch7.requestFocus();
+                if (tdm_ch7.isFocusableInTouchMode()) {
+                    tdm_ch7.setFocusableInTouchMode(false);
+                }
                 break;
             case R.id.tdm_ch8:
                 _sdiInput.setTdm('8');
+                tdm_ch8.setFocusableInTouchMode(true);
+                tdm_ch8.requestFocus();
+                if (tdm_ch8.isFocusableInTouchMode()) {
+                    tdm_ch8.setFocusableInTouchMode(false);
+                }
                 break;
 
         }
     }
+
 
     int getBit(int x, int n) {
         return (x & (1 << n)) >> n;
@@ -1954,6 +2449,7 @@ public class MainActivity extends AppCompatActivity
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+
         int width = ((ViewGroup) v.getParent()).getWidth() - v.getWidth();
         int height = ((ViewGroup) v.getParent()).getHeight() - v.getHeight();
 
@@ -2062,6 +2558,7 @@ public class MainActivity extends AppCompatActivity
                 break;
 
             case 4:
+//                Log.d(TAG, "clickMenu : " + position + " , " + mMode);
                 if (position == mMode) return;
                 mode = MODE_POC;
                 break;
@@ -2073,15 +2570,22 @@ public class MainActivity extends AppCompatActivity
             default:
                 return;
         }
+//        Log.d(TAG, "clickMenu after: " + mode + " , " + mMode);
 
         if (mode != mMode) {
             switch (mMode) {
                 case MODE_VIEW:
+//                    Log.d(TAG, "Mode _ View ");
                     hideSignalInfo();
                     break;
 
+
                 case MODE_POC:
-                    exitPocMode();
+                    if (mode == MODE_RECORD || mode == MODE_PTZ || mode == MODE_SNAPSHOT) {
+                        hideSignalInfo();
+                    }
+                    break;
+                case MODE_PTZ:
                     break;
             }
         }
@@ -2198,6 +2702,11 @@ public class MainActivity extends AppCompatActivity
 
         switch (mode) {
             case MODE_VIEW:
+                if (pocMode) {
+                    showPocOverlay();
+                } else {
+                    hidePocOverlay();
+                }
                 break;
 
             case MODE_PTZ:
@@ -2212,20 +2721,28 @@ public class MainActivity extends AppCompatActivity
                 }
                 mNoSignalView.setVisibility(View.INVISIBLE);
                 mSignalInfoView.setVisibility(View.INVISIBLE);
+
+                if (pocMode) {
+                    hidePocOverlay();
+                    mLevelMeterView.setVisibility(View.INVISIBLE);
+                }
                 break;
 
             case MODE_RECORD:
+//                if(mSignalInfo != null) mNoSignalView.setVisibility(View.VISIBLE);
                 overlayFragment = RecordOverlayFragment.newInstance(RecordOverlayFragment.CAPTURE_MOVIE);
 
                 break;
 
             case MODE_SNAPSHOT:
+//                if(mSignalInfo != null) mNoSignalView.setVisibility(View.VISIBLE);
                 overlayFragment = RecordOverlayFragment.newInstance(RecordOverlayFragment.CAPTURE_PHOTO);
 
                 break;
 
             case MODE_POC:
-                overlayFragment = PocOverlayFragment.newInstance();
+//                overlayFragment = PocOverlayFragment.newInstance();
+//                mPocOverlay.setVisibility(View.VISIBLE);
                 break;
 
 
@@ -2254,7 +2771,7 @@ public class MainActivity extends AppCompatActivity
     private void switchToPendingMode() {
         if (mPendingMode != MODE_INVALID) {
             enterMode(mPendingMode);
-        } else if (mMode == MODE_VIEW) {
+        } else if (mMode == MODE_VIEW || mMode == MODE_POC) {
             if (mSignalInfo != null) showSignalInfo(mSignalInfo);
         }
     }
@@ -2265,26 +2782,28 @@ public class MainActivity extends AppCompatActivity
      * @param mode 전환할 모드
      */
     private void enterMode(int mode) {
+//        Log.d(TAG, "Enter Mode: " + mode);
         switch (mode) {
             case MODE_PTZ:
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
                 PtzSettings ptzSettings = getPtzSettings(sharedPreferences);
-                changePtzMode(ptzSettings);
+                changePtzMode(ptzSettings, true);
                 break;
 
             case MODE_POC:
-                stopPtzMode();
+//                stopPtzMode();
+                if (!pocMode) startPocMode();
 
-                startPocMode();
+
                 break;
 
             case MODE_VIEW:
-                stopPtzMode();
-
+//                stopPtzMode();
                 if (mSignalInfo != null) showSignalInfo(mSignalInfo);
+                if (pocMode) mode = MODE_POC;
                 break;
             default:
-                stopPtzMode();
+//                stopPtzMode();
                 break;
         }
 
@@ -2294,16 +2813,17 @@ public class MainActivity extends AppCompatActivity
         // TO DO: 이게 필요한가? 없애거나 더 적당한 위치로 옮기는 것이 바람직하다.
         //closeDrawer();
 
-//        mDrawer.requestFocus();
+        mDrawer.requestFocus();
     }
 
     private void enterVideoMode() {
         setOverlayFragment(MODE_VIEW);
         enterMode(MODE_VIEW);
+        stopPtzMode();
     }
 
     private void enterPtzMode() {
-        Log.d(TAG, "EnterPtzMode");
+//        Log.d(TAG, "EnterPtzMode");
         setOverlayFragment(MODE_PTZ);
         enterMode(MODE_PTZ);
     }
@@ -2351,7 +2871,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onPreferenceDisplayDialog(@NonNull PreferenceFragmentCompat
                                                      preferenceFragmentCompat, Preference preference) {
         if (mCurrentSubmenuFragment == null) {
-            Log.w(TAG, "mCurrentSubmenuFragment is null. Using default DialogPreference behaviour!");
+//            Log.w(TAG, "mCurrentSubmenuFragment is null. Using default DialogPreference behaviour!");
             return false;
         }
         //Log.i(TAG, "Opening dialog for " + preference.getKey());
@@ -2372,7 +2892,7 @@ public class MainActivity extends AppCompatActivity
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(getString(R.string.pref_ptz_mode_utc)) ||
                 key.equals(getString(R.string.pref_ptz_mode_sdi))) {
-//            Log.d(TAG, key + "=" + sharedPreferences.getString(key, null));
+            Log.d(TAG, key + "=" + sharedPreferences.getString(key, null));
         } else if (key.equals(getString(R.string.pref_ptz_protocol))) {
             if (!isDrawerOpen() && mPtzControl != null) {
                 if (mPtzControl instanceof PtzAnalyzer) {
@@ -2385,7 +2905,7 @@ public class MainActivity extends AppCompatActivity
             if (key.equals(getString(R.string.pref_ptz_address))) {
 
             } else if (key.equals(getString(R.string.pref_ptz_baudrate))) {
-                if (!isDrawerOpen() && mPtzControl != null && mPtzControl instanceof PtzMode) {
+                if (!isDrawerOpen() && mPtzControl instanceof PtzMode) {
                     PtzMode ptzMode = (PtzMode) mPtzControl;
                     ptzMode.setBaudRate(getPtzBaudRate(sharedPreferences));
                 }
@@ -2397,16 +2917,18 @@ public class MainActivity extends AppCompatActivity
                     hideLevelMeter();
                     mLevelMeterView.setVisibility(View.INVISIBLE);
                 }
-            } else if (key.equals(getString(R.string.pref_recording_resolution))) {
-
-                if (sharedPreferences.getBoolean(key, true)) {
-                    recordMode = false;
-//                    showToast(R.string.recording_2);
-                } else {
-                    recordMode = true;
-//                    showToast(R.string.recording_1);
-                }
             }
+//            else if (key.equals(getString(R.string.pref_recording_resolution))) {
+//
+//                boolean recordMode;
+//                if (sharedPreferences.getBoolean(key, true)) {
+//                    recordMode = false;
+////                    showToast(R.string.recording_2);
+//                } else {
+//                    recordMode = true;
+////                    showToast(R.string.recording_1);
+//                }
+//            }
 //            else if (key.equals(getString(R.string.pref_view_change))) {
 //                runDialog(1);
 //                if (sharedPreferences.getBoolean(key, true)) {
@@ -2558,7 +3080,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean useExternalSd(SharedPreferences sharedPreferences) {
-        //Log.d(TAG, "pref_media_folder = " + sharedPreferences.getBoolean(getString(R.string.pref_media_folder), false));
+//        Log.d(TAG, "pref_media_folder = " + sharedPreferences.getBoolean(getString(R.string.pref_media_folder), false));
         return !sharedPreferences.getBoolean(getString(R.string.pref_media_folder), false);
     }
 
@@ -2618,12 +3140,16 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+
     /**
      * PTZ 모드를 시작한다.
      *
      * @param ptzSettings 새롭게 시작할 PTZ 모드의 설정을 나타내는 PtzSettings 객체
      */
-    public void changePtzMode(PtzSettings ptzSettings) {
+
+    public void changePtzMode(PtzSettings ptzSettings, boolean i) {
+        int v = 0;
+
         if (ptzSettings.mode == PtzMode.UTC && !sourceId.equals(VideoSource.SDI)) {
             int type = utcTypeNum();
             UtcWriter utcWriter = new UtcWriter(ptzSettings.address, type, utcType());
@@ -2640,7 +3166,13 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        stopPtzMode();
+
+//        if (i) {
+//            stopPtzMode();
+//        } else {
+//            stopPtzOverlayMode();
+//
+//        }
 
         // 시작하기 전에 터미네이션 설정을 먼저 적용
         mMcuControl.setTermination(ptzSettings.termination);
@@ -2649,22 +3181,20 @@ public class MainActivity extends AppCompatActivity
 //        Log.d(TAG, "Address: " + Character.toString(ptzSettings.address));
 //        Log.d(TAG, "Baudrate: " + ptzSettings.baudRate);
 //        Log.d(TAG, "PtzSettings = " + ptzSettings.mode);
+
         switch (ptzSettings.mode) {
             case PtzMode.TX:
-                Log.d(TAG, "Tx Start");
                 PtzWriter writer = new PtzWriter(mMcuControl, ptzSettings.protocol, ptzSettings.address, ptzSettings.baudRate);
-                Log.d(TAG, "Protocol: " + ptzSettings.protocol + " Address: " + ptzSettings.address);
+                setModeUcc(0);
                 writer.startTx();
                 writer.setMode(PtzWriter.MODE_PT);
                 mPtzControl = writer;
                 break;
 
             case PtzMode.UTC:
-//                Log.d(TAG, "UTC Start");
                 if (sourceId.equals(VideoSource.SDI)) {
-                    Log.d(TAG, "Ucc Start");
                     PtzWriter writerUcc = new PtzWriter(mMcuControl, ptzSettings.protocol, ptzSettings.address, ptzSettings.baudRate);
-//                    Log.d(TAG, "" + mMcuControl + " , " + ptzSettings.protocol + " , " + ptzSettings.address + " , " + ptzSettings.baudRate);
+                    setModeUcc(1);
                     writerUcc.startUcc();
                     writerUcc.setMode(PtzWriter.MODE_PT);
                     mPtzControl = writerUcc;
@@ -2679,28 +3209,25 @@ public class MainActivity extends AppCompatActivity
                 break;
 
             case PtzMode.RX:
-//                Log.d(TAG, "Rx Start");
-
                 PtzReader reader = new PtzReader(mMcuControl, ptzSettings.baudRate);
 
                 reader.start((reader1, bytes) -> {
                     // RS485 통신은 다른 thread에서 실행하므로 UI thread로 실행을 옮겨주어야 한다.
                     runOnUiThread(() -> {
-                        PtzRxContentsFragment fragment = (PtzRxContentsFragment)
-                                getSupportFragmentManager().findFragmentByTag(PtzOverlayFragment.CONTENTS_FRAGMENT_TAG);
-                        if (fragment != null) {
-                            fragment.addBytes(PtzReader.buildHexString(bytes));
-//                            Log.d(TAG, "Value: " + PtzReader.buildHexString(bytes));
+                        if (!onPtzMenu) {
+                            PtzRxContentsFragment fragment = (PtzRxContentsFragment) getSupportFragmentManager().findFragmentByTag(PtzOverlayFragment.CONTENTS_FRAGMENT_TAG);
+                            if (fragment != null) {
+                                fragment.addBytes(PtzReader.buildHexString(bytes));
+                            }
                         }
+
                     });
                 });
-
                 mPtzControl = reader;
+
                 break;
 
             case PtzMode.ANALYZER:
-//                Log.d(TAG, "Analyzer Start");
-
                 PtzAnalyzer analyzer = new PtzAnalyzer(mMcuControl, ptzSettings.protocol, ptzSettings.baudRate);
 
                 analyzer.start((analyzer1, address, command, packet) -> {
@@ -2709,15 +3236,18 @@ public class MainActivity extends AppCompatActivity
 
                     // RS485 통신은 다른 thread에서 실행하므로 UI thread로 실행을 옮겨주어야 한다.
                     runOnUiThread(() -> {
-                        PtzAnalyzerContentsFragment fragment = (PtzAnalyzerContentsFragment)
-                                getSupportFragmentManager().findFragmentByTag(PtzOverlayFragment.CONTENTS_FRAGMENT_TAG);
-                        if (fragment != null) {
-                            fragment.addPacket(address, commandString, packetString);
+                        if (!onPtzMenu) {
+                            PtzAnalyzerContentsFragment fragment = (PtzAnalyzerContentsFragment)
+                                    getSupportFragmentManager().findFragmentByTag(PtzOverlayFragment.CONTENTS_FRAGMENT_TAG);
+                            if (fragment != null) {
+                                fragment.addPacket(address, commandString, packetString);
+                            }
                         }
+
                     });
                 });
-
                 mPtzControl = analyzer;
+
                 break;
 
         }
@@ -2727,12 +3257,25 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void stopPtzMode() {
+//        Log.d(TAG, "stopPtzMode----");
         if (null != mPtzControl) {
+
             mPtzControl.stop();
 
             mPtzControl = null;
         }
 
+        // PTZ 모드에서 빠져나가면 같은 설정이라도 다시 실행할 수 있게 해야 한다.
+        mPtzSettings = null;
+    }
+
+    private void stopPtzOverlayMode() {
+//        Log.d(TAG, "stopPtzOverlayMode----");
+        if (null != mPtzControl) {
+            mPtzControl.stop();
+
+            mPtzControl = null;
+        }
         // PTZ 모드에서 빠져나가면 같은 설정이라도 다시 실행할 수 있게 해야 한다.
         mPtzSettings = null;
     }
@@ -2962,6 +3505,8 @@ public class MainActivity extends AppCompatActivity
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        enterVideoMode();
+        mMenuAdaptor.notifyDataSetChanged();
     }
 
 
@@ -2975,6 +3520,7 @@ public class MainActivity extends AppCompatActivity
     private File getOutputMediaFile(int type) {
         String directory;
         File mediaStorageDir;
+//        Log.d(TAG, "getOutputMediaFile: " + mExternalStorageAvailable);
 
         if (useExternalSd(PreferenceManager.getDefaultSharedPreferences(this)) || !mExternalStorageAvailable) {
             if (type == MEDIA_TYPE_IMAGE) {
@@ -2986,6 +3532,8 @@ public class MainActivity extends AppCompatActivity
             }
 
             mediaStorageDir = Environment.getExternalStoragePublicDirectory(directory);
+//            Log.d(TAG, "getOutputMediaFile 1: " + mediaStorageDir);
+
         } else {
             // 저장할 경로를 만든다.
             // 예) /<SD카드 마운트 위치>/SD Card Movies
@@ -3002,6 +3550,8 @@ public class MainActivity extends AppCompatActivity
             }
 
             mediaStorageDir = new File(directory);
+//            Log.d(TAG, "getOutputMediaFile 2: " + mediaStorageDir);
+
         }
 
         // Create the storage directory if it does not exist
@@ -3011,11 +3561,12 @@ public class MainActivity extends AppCompatActivity
                 return null;
             }
         }
+//        Log.d(TAG, "getOutputMediaFile 3" );
 
         // Create a media file name
         String fileName = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREAN).format(new Date());
         fileName += String.format("_%s_%d%c%.2f", sourceId, mSignalInfo.height, mSignalInfo.scan, mSignalInfo.rate);
-        File mediaFile;
+//        File mediaFile;
         if (type == MEDIA_TYPE_IMAGE) {
             mediaFile = new File(mediaStorageDir.getPath() + File.separator +
                     "IMG_" + fileName + ".jpg");
@@ -3023,6 +3574,7 @@ public class MainActivity extends AppCompatActivity
             mediaFile = new File(mediaStorageDir.getPath() + File.separator +
                     "VID_" + fileName + ".mp4");
         }
+//        Log.d(TAG, "getOutputMediaFile 4: " + mediaStorageDir);
 
         return mediaFile;
     }
@@ -3033,29 +3585,63 @@ public class MainActivity extends AppCompatActivity
      * @param file_path 등록할 미디어 파일 객체(경로/파일명)
      */
     private void addMediaToLibrary(String file_path) {
+        Log.d(TAG, "Start addMediaToLibrary");
         if (file_path != null) {
 
+            MediaScanning scanning = new MediaScanning(mContext);
+            scanning.startScan(file_path);
+
+            Log.d(TAG, "File: " + file_path);
+
+            if (isCaptureReady == STAT_SNAPSHOT) {
+                Log.i(TAG, "onSnapshot end.");
+            } else if (isCaptureReady == STAT_RECORD) {
+                Log.i(TAG, "Recording end.");
+            }
+
+            isCaptureReady = STAT_READY;
+
+//            MediaScannerConnection.scanFile(
+//                    getApplicationContext(),
+//                    new String[]{file_path},
+//                    null,
+//                    (path, uri) -> {
+//                        Log.v(TAG, "file " + path + " was scanned Completed: " + uri);
+//
+//                        if (isCaptureReady == STAT_SNAPSHOT) {   // snapshot
+//                            // 1초 이내에 다시 캡쳐하는 경우 파일이 겹쳐지는 경우를 피하기 위한 딜레이
+//                            long duration = System.currentTimeMillis() - mRecordingStartTime;
+//                            //Log.d(TAG, "duration = " + duration);
+//                            if (1000 > duration) {
+//                                delay_ms(1500 - duration, 0);       //20181210 ms_cnt 1000 -> 1500 수정 : 셔터 사운드 두번 동작함.
+//                            }
+////                            new Handler().postDelayed(() -> {
+////                                Log.i(TAG, "onSnapshot end.");
+////
+////                            }, 1000);
+//                        } else if (isCaptureReady == STAT_RECORD) {
+//                            Log.i(TAG, "Recording end.");
+//                        }
+//
+//                        isCaptureReady = STAT_READY;
+//                    });
+        }
+    }
+
+    public void deleteMediaToLibrary(String file_path) {
+        if (file_path != null) {
+            File file = new File(file_path);
+            file.delete();
+
+
             MediaScannerConnection.scanFile(
-                    getApplicationContext(),
-                    new String[]{file_path},
-                    null,
-                    (path, uri) -> {
-                        Log.v(TAG, "file " + path + " was scanned Completed: " + uri);
-
-                        if (isCaptureReady == STAT_SNAPSHOT) {   // snapshot
-                            // 1초 이내에 다시 캡쳐하는 경우 파일이 겹쳐지는 경우를 피하기 위한 딜레이
-                            long duration = System.currentTimeMillis() - mRecordingStartTime;
-                            //Log.d(TAG, "duration = " + duration);
-                            if (1000 > duration) {
-                                delay_ms(1500 - duration, 0);       //20181210 ms_cnt 1000 -> 1500 수정 : 셔터 사운드 두번 동작함.
-                            }
-                            Log.i(TAG, "onSnapshot end.");
-                        } else if (isCaptureReady == STAT_RECORD) {
-                            Log.i(TAG, "Recording end.");
-                        }
-
-                        isCaptureReady = STAT_READY;
-                    });
+                    getApplicationContext(), new String[]{file_path}, null, (file_path1, uri) -> {
+//                            Log.i(TAG, "Scanned " + file_path + ":");
+//                            Log.i(TAG, "uri = " + uri);
+                        if (uri != null)
+                            mContext.getContentResolver().delete(uri, null, null);
+                    }
+            );
         }
     }
 
@@ -3073,12 +3659,13 @@ public class MainActivity extends AppCompatActivity
     public void onCaptureClick(int captureType) {
 //        Log.d(TAG, "onCaptureClick " + captureType);
 //        getMode(recordMode);
-        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
-            return;
-        }
+//        Log.d(TAG, "onCaptureClick0");
+
 
         if (!isDrawerOpen()) {
+
             if (captureType == RecordOverlayFragment.CAPTURE_MOVIE) {
+//                Log.d(TAG, "onCaptureClick2");
 
                 toggleRecording();
             } else if (captureType == RecordOverlayFragment.CAPTURE_PHOTO) {
@@ -3127,6 +3714,7 @@ public class MainActivity extends AppCompatActivity
     private void onRecordingStart() {
 
         updateRecordingState(true);
+//        Log.d(TAG, "onRecordingStart");
 
         mRecordingTimeText = findViewById(R.id.recording_time);
         mRecordingTimeText.setText(getString(R.string.time_start));
@@ -3139,16 +3727,24 @@ public class MainActivity extends AppCompatActivity
             dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             String durationText = dateFormat.format(new Date(duration));
             mRecordingTimeText.setText(durationText);
+//            Log.d(TAG, "mRecordingTimeText = " + duration);
 
             mRecordingTimeText.postDelayed(mUpdateRecordingTimeTask, 1000);
+
 
             if (chkAvailableStorageSize(false)) {
                 stopVideoRecording();
                 onRecordingStop(true, false);
                 showToast(R.string.msg_storage_space);
                 Log.w(TAG, "Stop recording. not enough storage space(<50M)!");
+            } else if (duration > 300000) {
+                stopVideoRecording();
+                onRecordingStop(true, true);
+                Log.w(TAG, "Stop recording. Recording duration > 300000");
+
             }
         };
+//        Log.d(TAG, "onRecordingStart1");
 
         mRecordingTimeText.postDelayed(mUpdateRecordingTimeTask, 1000);
         showToast(R.string.msg_recording_started);
@@ -3178,6 +3774,8 @@ public class MainActivity extends AppCompatActivity
 
     private boolean startVideoRecording() {
         if (isCaptureReady == STAT_READY) {
+//            Log.d(TAG, "startVideoRecording0");
+
             if (hasNoSignal(mSignalInfo)) {
                 showToast(R.string.msg_no_signal_to_capture);
                 return false;
@@ -3198,10 +3796,12 @@ public class MainActivity extends AppCompatActivity
                 isCaptureReady = STAT_RECORD;
 //                Log.i(TAG, "Recording start!");
 
-                stopHdmiAudioPlay();
-                startRecordAudio();
+//                stopHdmiAudioPlay(false);
+//                Log.d(TAG, "startVideoRecording");
+
                 File file = getOutputMediaFile(MEDIA_TYPE_VIDEO);
                 if (file != null) {
+//                    Log.d(TAG, "startVideoRecording1");
                     return mVideoInput.startRecording(file.toString());
                 }
             }
@@ -3212,19 +3812,25 @@ public class MainActivity extends AppCompatActivity
 
     private void stopVideoRecording() {
         if (mVideoInput != null) {
+            Log.d(TAG, "stopVideoRecording");
+
             // stop 명령이 1초 미만이면 파일이 정상적으로 저장되지 않는 문제를 피하기 위해 1초가 될 때까지 stop을 기다림
             long duration = System.currentTimeMillis() - mRecordingStartTime;
 
-            if (1000 > duration) {
+            if (1500 > duration) {
                 delay_ms(1500 - duration, 0);
             }
+            mediaPath = mVideoInput.stopRecording(hasNoSignal(mSignalInfo));
 
-            String path = mVideoInput.stopRecording(hasNoSignal(mSignalInfo));
-            if (path != null) {
-                addMediaToLibrary(path);
+//            new Handler().postDelayed(() -> {
+            if (mediaPath != null) {
+                addMediaToLibrary(mediaPath);
             }
-            if (mSignalInfo.signal)
-            startHdmiAudioPlay(true);
+//            }, 1000);
+//            Log.d(TAG, "stopVideoRecording1: " + mediaPath);
+
+//            if (mSignalInfo.signal)
+//                startHdmiAudioPlay(true);
         }
     }
 
@@ -3253,9 +3859,7 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onShutter() {
-//                        Log.i(TAG, "onShutter");
-//
-//
+//                        Log.i(TAG, "onShutter");a
 //                        sp.play(soundID, 1, 1, 0, 0, 1);
 //                        MediaActionSound sound = new MediaActionSound();
 //                        sound.play(MediaActionSound.SHUTTER_CLICK);
@@ -3329,6 +3933,11 @@ public class MainActivity extends AppCompatActivity
 
     //--------------------------------------------------------------------------------------------------
     private void launchGalleryApp() {
+        SharedPreferences pref = getSharedPreferences("poc_gallery", MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean("poc_gallery", false);
+        editor.apply();
+
         PackageManager pm = getPackageManager();
         Intent intent = pm.getLaunchIntentForPackage("com.android.gallery3d");
 //        Intent intent = new Intent(Intent.ACTION_GET_CONTENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -3336,31 +3945,43 @@ public class MainActivity extends AppCompatActivity
     }
 
     ////--------------------------------------------------------------------------------------------------
-    private void setPocMode(int mode) {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(OVERLAY_FRAGMENT_TAG);
-        if (fragment instanceof PocOverlayFragment) {
-            PocOverlayFragment pocOverlayFragment = (PocOverlayFragment) fragment;
-            pocOverlayFragment.setPocMode(mode);
+//    private void setPocMode(int mode) {
+//        Fragment fragment = getSupportFragmentManager().findFragmentByTag(OVERLAY_FRAGMENT_TAG);
+//        if (fragment instanceof PocOverlayFragment) {
+//            PocOverlayFragment pocOverlayFragment = (PocOverlayFragment) fragment;
+//            pocOverlayFragment.setPocMode(mode);
+//        }
+//    }
+
+//    private void setPocState(int state) {
+//        Fragment fragment = getSupportFragmentManager().findFragmentByTag(OVERLAY_FRAGMENT_TAG);
+//        if (fragment instanceof PocOverlayFragment) {
+//            PocOverlayFragment pocOverlayFragment = (PocOverlayFragment) fragment;
+//            pocOverlayFragment.setPocState(state);
+//        }
+//    }
+
+    private void inputPocState(int state) {
+        final String[] pocStates = getResources().getStringArray(R.array.poc_states);
+        if (state < pocStates.length) {
+            mPocState.setText(pocStates[state]);
         }
     }
 
-    private void setPocState(int state) {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(OVERLAY_FRAGMENT_TAG);
-        if (fragment instanceof PocOverlayFragment) {
-            PocOverlayFragment pocOverlayFragment = (PocOverlayFragment) fragment;
-            pocOverlayFragment.setPocState(state);
-        }
-    }
+//    private void setPocDialogVisible(int visibility) {
+//        Fragment fragment = getSupportFragmentManager().findFragmentByTag(OVERLAY_FRAGMENT_TAG);
+//        if (fragment instanceof PocOverlayFragment) {
+//            PocOverlayFragment pocOverlayFragment = (PocOverlayFragment) fragment;
+//            if (pocOverlayFragment.getView() != null) {
+//                View view = pocOverlayFragment.getView().findViewById(R.id.poc_dialog);
+//                view.setVisibility(visibility);
+//            }
+//        }
+//    }
 
     private void setPocDialogVisible(int visibility) {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(OVERLAY_FRAGMENT_TAG);
-        if (fragment instanceof PocOverlayFragment) {
-            PocOverlayFragment pocOverlayFragment = (PocOverlayFragment) fragment;
-            if (pocOverlayFragment.getView() != null) {
-                View view = pocOverlayFragment.getView().findViewById(R.id.poc_dialog);
-                view.setVisibility(visibility);
-            }
-        }
+        RelativeLayout view = findViewById(R.id.poc_dialog);
+        view.setVisibility(visibility);
     }
 
     private void showPocNotSupportDialog() {
@@ -3394,7 +4015,7 @@ public class MainActivity extends AppCompatActivity
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
         //alert.setTitle("Title");
-        alert.setMessage(R.string.rec_error);
+        alert.setMessage(R.string.stop_error);
 
         // Set an EditText view to get user input
         //final EditText input = new EditText(this);
@@ -3412,12 +4033,13 @@ public class MainActivity extends AppCompatActivity
                 (dialog, whichButton) -> {
                     // Canceled.
                     ActivityCompat.finishAffinity(this);
-                    System.runFinalizersOnExit(true);
+//                    System.runFinalizersOnExit(true);
                     System.exit(0);
                 });
 
         alert.show();
     }
+
 
     private void showPocPseCheckDialog() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -3448,12 +4070,44 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showPocDialog() {
-//        Log.d(TAG, "Show!!");
-        setPocDialogVisible(View.VISIBLE);
+        onPocDialog = true;
+        if (mPocDialog != null) {
+            mPocDialog.setVisibility(View.VISIBLE);
+        } else {
+            mPocDialog = findViewById(R.id.poc_dialog);
+            mPocDialog.setVisibility(View.VISIBLE);
+        }
+        mDrawerButton.setEnabled(false);
+        mDrawerButton.setSelected(false);
+    }
+
+    private void showPocOverlay() {
+        if (mPocOverlay != null) {
+            mPocOverlay.setVisibility(View.VISIBLE);
+        } else {
+            mPocOverlay = findViewById(R.id.poc_overlay);
+
+            mPocOverlay.setVisibility(View.VISIBLE);
+        }
     }
 
     private void hidePocDialog() {
-        setPocDialogVisible(View.INVISIBLE);
+        onPocDialog = false;
+
+        if (mPocDialog != null) {
+            mPocDialog.setVisibility(View.INVISIBLE);
+            mPocDialog = null;
+        }
+        mDrawerButton.setEnabled(true);
+        mDrawerButton.setSelected(true);
+
+    }
+
+    private void hidePocOverlay() {
+        if (mPocOverlay != null) {
+            mPocOverlay.setVisibility(View.INVISIBLE);
+            mPocOverlay = null;
+        }
     }
 
     public String getPseState() {
@@ -3471,71 +4125,97 @@ public class MainActivity extends AppCompatActivity
         return sValue;
     }
 
-    private void startPocMode() {
-        if (getPseState().equals("1")) {
-//            Toast.makeText(this, "PoE ON", Toast.LENGTH_LONG).show();
-            onCancelPocCheck();
-            runOnUiThread(() -> {
-                //showToast(R.string.poc_not_support);
-                hidePocDialog();
-                showPocPseCheckDialog();
-            });
-//            Log.d(TAG, "PSE ON");
-            return;
-        }
+    public String getPocState() {
+        String sValue = "";
 
         try {
-//            mSource.set48vPowerOn();
-            opt.writeBytes("echo 0 > /sys/class/gpio_sw/PE11/data\n");
-
+            Process p = Runtime.getRuntime().exec("cat /sys/class/gpio_sw/PE11/data");
+            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            sValue = input.readLine();
+            input.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        setPocMode(PocOverlayFragment.MODE_CHECK);
+        return sValue;
+    }
 
-        mPocStateListener = new PocStateListener() {
-            @Override
-            public void onPocStarted() {
-                //Log.d(TAG, "onPocStarted()");
-                // 전원 공급 모드로 바꿈
-                runOnUiThread(() -> showPocDialog());
-            }
+    private void startPocMode() {
+//        Log.d(TAG, "startPocMode");
 
-            @Override
-            public void onPocStateChange(final int state) {
-//                Log.d(TAG, "PoC state = " + state);
+        pocMode = true;
 
-                runOnUiThread(() -> {
-                    setPocState(state);
+        setPocMode(MODE_CHECK);
 
-                    if (state == PocOverlayFragment.STATE_LINK_OK) {
-                        setPocMode(PocOverlayFragment.MODE_POWER);
-                        showPocDialog();
-                    } else if (state >= PocOverlayFragment.STATE_C_OPEN) {
-                        setPocMode(PocOverlayFragment.MODE_CHECK);
-                        showPocDialog();
-                    }
-                });
-            }
+        if (getPseState().equals("1")) {
+            onCancelPocCheck();
+            runOnUiThread(() -> {
+                hidePocDialog();
+                hidePocOverlay();
+                showPocPseCheckDialog();
+            });
+            return;
+        }
 
-            @Override
-            public void onPocStopped() {
-                //Log.d(TAG, "onPocStopped()");
+//        mPocStateListener = new PocStateListener() {
+//
+//            @Override
+//            public void onPocStarted() {
+////                Log.d(TAG, "onPocStarted()");
+//                try {
+//                    opt.writeBytes("echo 0 > /sys/class/gpio_sw/PE11/data\n");
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                runOnUiThread(() -> {
+//                    showPocDialog();
+//                    showPocOverlay();
+//                    inputPocState(0);
+//                });
+//                // 전원 공급 모드로 바꿈
+//
+//            }
+//
+//            @Override
+//            public void onPocStateChange(final int state) {
+////                Log.d(TAG, "PoC state = " + state);
+//
+//                runOnUiThread(() -> {
+////                    setPocState(state);
+//                    inputPocState(state);
+//                    if (state == STATE_LINK_OK) {
+//                        setPocMode(MODE_POWER);
+//                        showPocDialog();
+//                    } else if (state >= STATE_C_OPEN) {
+//                        setPocMode(MODE_CHECK);
+//                        showPocDialog();
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onPocStopped() {
+////                Log.d(TAG, "onPocStopped()");
+//            }
+//
+//            @Override
+//            public void onPocNotSupported() {
+//                //Log.d(TAG, "onPocNotSupported()");
+//                runOnUiThread(() -> {
+//                    //showToast(R.string.poc_not_support);
+//                    hidePocDialog();
+//                    hidePocOverlay();
+//                    showPocNotSupportDialog();
+//                });
+//            }
+//        };
+//        mMcuControl.addReceiveBufferListener(mPocStateListener);
 
-            }
+        setVpMode();
+    }
 
-            @Override
-            public void onPocNotSupported() {
-                //Log.d(TAG, "onPocNotSupported()");
-                runOnUiThread(() -> {
-                    //showToast(R.string.poc_not_support);
-                    hidePocDialog();
-                    showPocNotSupportDialog();
-                });
-            }
-        };
-        mMcuControl.addReceiveBufferListener(mPocStateListener);
+    private void setVpMode() {
+//        Log.d(TAG, "setVpMode...");
 
         try {
             mMcuControl.setVpMode(true);
@@ -3543,10 +4223,10 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
-//        Log.d(TAG, "Starting PoC mode...");
+
     }
 
-    @Override
+
     public void onStartPocCheck() {
 //        Log.d(TAG, "Checking PoC link...");
 
@@ -3559,7 +4239,7 @@ public class MainActivity extends AppCompatActivity
         hidePocDialog();
     }
 
-    @Override
+
     public void onApplyPocPower() {
         try {
             mMcuControl.attemptVpTest();
@@ -3573,25 +4253,52 @@ public class MainActivity extends AppCompatActivity
     private void exitPocMode() {
         Log.d(TAG, "exitPocMode");
 
+        pocMode = false;
+        inputPocState(STATE_POWER_OFF);
+        hidePocOverlay();
+        hidePocDialog();
+
+//        try {
+//            opt.writeBytes("echo 1 > /sys/class/gpio_sw/PE11/data\n");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
         try {
             mMcuControl.setVpMode(false);
+//                Log.d(TAG, "Poc EXit");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+//        mMcuControl.removeReceiveBufferListener(mPocStateListener);
+//        mPocStateListener = null;
 
-        mMcuControl.removeReceiveBufferListener(mPocStateListener);
-        mPocStateListener = null;
-
-        try {
-            opt.writeBytes("echo 1 > /sys/class/gpio_sw/PE11/data\n");
-
-//            mSource.set48vPowerOff();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    @Override
+    public void setPocMode(int mode) {
+        TextView message = findViewById(R.id.poc_message);
+        switch (mode) {
+            case MODE_CHECK:
+                message.setText(getString(R.string.msg_starting_poc_check));
+                break;
+
+            case MODE_POWER:
+                message.setText(getString(R.string.msg_enable_poc_power));
+                break;
+
+            case MODE_PSE:
+                message.setText(getString(R.string.usb));
+                break;
+
+            default:
+                return;
+        }
+
+        _mode = mode;
+//        yesButton.requestFocus();
+    }
+
+
     public void onCancelPocCheck() {
         exitPocMode();
 
@@ -3599,7 +4306,7 @@ public class MainActivity extends AppCompatActivity
         enterVideoMode();
     }
 
-    @Override
+
     public void onRemovePocPower() {
         exitPocMode();
 
@@ -3610,6 +4317,8 @@ public class MainActivity extends AppCompatActivity
     ////--------------------------------------------------------------------------------------------------
     private BroadcastReceiver mExternalStorageReceiver;
     private boolean mExternalStorageAvailable;
+    private boolean mExternalRemove;
+    private boolean mExternalState;
     private String mExternalStoragePath;
 
     public static HashSet<String> getExternalMounts() {
@@ -3650,19 +4359,20 @@ public class MainActivity extends AppCompatActivity
     private void updateMediaFolderPreferenceEnabled() {
         Fragment menuFragment = getSupportFragmentManager().findFragmentByTag(MENU_FRAGMENT_TAG);
 
-        if (menuFragment != null && menuFragment instanceof SettingsFragment) {
+        if (menuFragment instanceof SettingsFragment) {
             Preference preference = ((SettingsFragment) menuFragment).findPreference(getString(R.string.pref_media_folder));
             preference.setEnabled(mExternalStorageAvailable);
-//            Log.d(TAG, "Updating MediaFolderPreferenceEnabled = " + mExternalStorageAvailable);
+            Log.d(TAG, "Updating MediaFolderPreferenceEnabled = " + mExternalStorageAvailable);
         }
     }
 
     private void updateMediaLocation(boolean update) {
         Fragment menuFragment = getSupportFragmentManager().findFragmentByTag(MENU_FRAGMENT_TAG);
-        if (menuFragment != null && menuFragment instanceof SettingsFragment) {
+        if (menuFragment instanceof SettingsFragment) {
             Preference preference = ((SettingsFragment) menuFragment).findPreference(getString(R.string.pref_media_folder));
+            preference.setEnabled(update);
 
-//            Log.d(TAG, "MediaLocation = " + update);
+            Log.d(TAG, "MediaLocation = " + update);
         }
     }
 
@@ -3670,7 +4380,7 @@ public class MainActivity extends AppCompatActivity
         String mode;
         SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
         mode = pref.getString("mnt", "");
-        storageView = findViewById(R.id.recording_storage);
+        TextView storageView = findViewById(R.id.recording_storage);
 //        Log.d(TAG, "Mode: " + mode);
         if (storageView != null) {
             if (!storageBoolean()) {
@@ -3686,12 +4396,9 @@ public class MainActivity extends AppCompatActivity
                     case "extsd":
                         storageView.setText(R.string.extsd);
                         break;
-
                 }
             }
         }
-
-
     }
 
     public String storageStat() {
@@ -3710,41 +4417,49 @@ public class MainActivity extends AppCompatActivity
         HashSet<String> mounts = getExternalMounts();
         mounts.remove(Environment.getExternalStorageDirectory().getPath());
         mExternalStorageAvailable = mounts.size() > 0;
-        //Log.d(TAG, "mExternalStorageAvailable = " + mExternalStorageAvailable);
-
-        //String primary_sd = System.getenv("EXTERNAL_STORAGE");
-        //if(primary_sd != null)  Log.i("EXTERNAL_STORAGE", primary_sd);
-        //String secondary_sd = System.getenv("SECONDARY_STORAGE");
-        //if(secondary_sd != null)    Log.i("SECONDARY_STORAGE", secondary_sd);
+//        Log.d(TAG, "mExternalStorageAvailable: " + mExternalStorageAvailable + " Mount.size: " + mounts.size());
+//
+//        String primary_sd = System.getenv("EXTERNAL_STORAGE");
+//        if(primary_sd != null)  Log.i("EXTERNAL_STORAGE", primary_sd);
+//        String secondary_sd = System.getenv("SECONDARY_STORAGE");
+//        if(secondary_sd != null)    Log.i("SECONDARY_STORAGE", secondary_sd);
 
         // 외부 SD카드 마운트 경로를 기억해 둔다.
         mExternalStoragePath = null;
-        for (String path : mounts) {
-            mExternalStoragePath = path;
+        if (!mExternalRemove) {
+            for (String path : mounts) {
+                mExternalStoragePath = path;
+            }
         }
-//        Log.d(TAG, "mExternalStoragePath = " + mExternalStoragePath);
         SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         if (mExternalStoragePath != null) {
             if (mExternalStoragePath.equals("/mnt/media_rw/usbhost")) {
                 editor.putString("mnt", "usb");
                 updateMediaLocation(true);
+                mExternalStoragePath = "/storage/usbhost";
 
             } else if (mExternalStoragePath.equals("/mnt/media_rw/extsd")) {
                 editor.putString("mnt", "extsd");
                 updateMediaLocation(true);
+                mExternalStoragePath = "/storage/extsd";
 
             }
         } else {
             editor.putString("mnt", "internal");
             updateMediaLocation(false);
+            mExternalStoragePath = "/storage/emulated/0/";
+            mExternalStorageAvailable = false;
+
         }
         editor.apply();
 
         if (mMode == MODE_RECORD || mMode == MODE_SNAPSHOT) {
             setTextExternalStorage();
         }
+
         updateMediaFolderPreferenceEnabled();
+//        Log.d(TAG, "mExternalStoragePath = " + mExternalStoragePath);
     }
 
     public String mediaStorageLocation() {
@@ -3760,44 +4475,49 @@ public class MainActivity extends AppCompatActivity
         mExternalStorageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-//                Log.d(TAG, "Storage: " + intent);
                 String action = intent.getAction();
                 updateMediaFolderPreferenceEnabled();
-                if (Intent.ACTION_MEDIA_EJECT.equals(action)) {
-//                    Log.e(TAG, "Media Eject");
-                    if (isRecording() && !mediaStorageLocation().equals("internal")) {
-                        if (mVideoInput != null) {
-
-                            stopRecording();
-
-                        }
-                    }
-                }
-
-                if (Intent.ACTION_MEDIA_BAD_REMOVAL.equals(action)) {
-//                    Log.e(TAG, "Media BAD");
-                }
-
 
                 if (Intent.ACTION_MEDIA_MOUNTED.equals(action)) {
-
+//                    Log.d(TAG, "isRecording: " + isRecording() + " mediaStorageLocation: " + mediaStorageLocation());
+                    if (isRecording() && !mediaStorageLocation().equals("internal")) {
+                        if (mVideoInput != null) {
+                            stopRecording();
+                        }
+                    }
+                    mExternalRemove = false;
                     updateExternalStorageState();
 
-                } else if (Intent.ACTION_MEDIA_REMOVED.equals(action)) {
-
-                } else if (Intent.ACTION_MEDIA_UNMOUNTED.equals(action)) {
-                    mExternalStorageAvailable = false;
+                } else if ((Intent.ACTION_MEDIA_REMOVED.equals(action)) || (Intent.ACTION_MEDIA_UNMOUNTED.equals(action))) {
+                    Log.d(TAG, "isRecording: " + isRecording() + " mediaStorageLocation: " + mediaStorageLocation());
+                } else if (Intent.ACTION_MEDIA_EJECT.equals(action)) {
+//                    Log.e(TAG, "ACTION_MEDIA_EJECT");
                     mExternalStoragePath = null;
+                    mExternalStorageAvailable = false;
+                    mExternalRemove = true;
+
+                    String value = mediaStorageLocation();
                     updateExternalStorageState();
+                    String value1 = mediaStorageLocation();
+
+//                    Log.d(TAG, "Value: " +value + " Value1: " + value1 + " State: " + storageBoolean());
+                    if (isRecording()) {
+                        if (!value.equals(value1) && storageBoolean()) {
+                            if (mVideoInput != null) {
+                                stopRecording();
+                                deleteMediaToLibrary(mediaPath);
+                            }
+                        }
+                    }
+//                    Log.i(TAG, "mediaStorageLocation1: " + mediaStorageLocation());
 
                     if (mMode == MODE_RECORD || mMode == MODE_SNAPSHOT) {
                         setTextExternalStorage();
                     }
-                    //Log.d(TAG, "mExternalStoragePath = " + mExternalStoragePath);
-                    //Log.d(TAG, "mExternalStorageAvailable = " + mExternalStoragePath);
                 }
             }
         };
+
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_MEDIA_MOUNTED);
@@ -3825,13 +4545,14 @@ public class MainActivity extends AppCompatActivity
         StatFs statFs;
         double gigaSize, sdSize;
         long free;
-
+//        Log.d(TAG, "chkAvailableStorageSize");
         if (useExternalSd(PreferenceManager.getDefaultSharedPreferences(this)) || !mExternalStorageAvailable) {
             statFs = new StatFs("/mnt/sdcard");
+//            Log.d(TAG, "chkAvailableStorageSize 1: " + statFs);
 
         } else {
             statFs = new StatFs(mExternalStoragePath);
-
+//            Log.d(TAG, "chkAvailableStorageSize 1: " + statFs);
         }
 
         sdSize = (double) statFs.getAvailableBlocks() * (double) statFs.getBlockSize();
@@ -3856,180 +4577,162 @@ public class MainActivity extends AppCompatActivity
 //    }
 //    */
     ////--------------------------------------------------------------------------------------------------
+    private boolean isMode = false;
     private boolean isPlaying = false;
-
+    private boolean isRecord = false;
     private AudioRecord audioRecorder = null;
     private AudioTrack audioPlayer = null;
     private Thread playThread = null;
     private boolean stopFlag = false;
     private int bufferSize;
 
+    private Thread mRecordThread = null;
+
+    private int mAudioSource = MediaRecorder.AudioSource.CAMCORDER;
+    private int mSamleRate = 48000;
+    private int mChannelCount = AudioFormat.CHANNEL_IN_STEREO;
+    private int mAudioFormat = AudioFormat.ENCODING_PCM_16BIT;
+    private int mBufferSize = AudioTrack.getMinBufferSize(mSamleRate, mChannelCount, mAudioFormat);
+
+    private ToneGenerator toneGenerator;
+    private final int TONE_TYPE = ToneGenerator.TONE_DTMF_5;
+    private final int STREAM = AudioManager.STREAM_MUSIC;
+    private final int DOT_TIME = 3;
+
     public void setAudioMode(int mode) {
         audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         if (audioManager != null) {
             int audio_volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
             audioManager.setParameters("playback=" + mode + ";dac_volume=" + audio_volume);
-            audioManager.setSpeakerphoneOn(true);
-            //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audio_volume, AudioManager.FLAG_PLAY_SOUND);
+//            audioManager.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audio_volume, FLAG_PLAY_SOUND);
+//            toneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC,audio_volume*14);
 
         }
     }
 
-    private void startHdmiAudioPlay(boolean play_mode) {
+    private AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = focusChange -> {
+
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_GAIN:
+//                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_SYSTEM), AudioManager.FLAG_PLAY_SOUND);
+                Log.d(TAG, "AudioFocus Gain");
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+//                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0,AudioManager.FLAG_PLAY_SOUND);
+                Log.d(TAG, "AudioFocus Loss");
+                break;
+
+
+        }
+    };
+
+    public void onMode(View view) {
+        if (isMode) {
+            isMode = false;
+            Log.d(TAG, "Audio Mode None");
+        } else {
+            isMode = true;
+            Log.d(TAG, "Audio Mode HDMI");
+
+        }
+    }
+
+    public void onRecord(View view) {
+        setModeUcc(0);
+    }
+
+
+    public void onPlay(View view) {
+        setModeUcc(1);
+    }
+
+    private void startHdmiAudioPlay() {
         if (mSource.is(VideoSource.HDMI) || mSource.is(VideoSource.SDI)) {
-            Log.d(TAG, "startHdmiAudioPlay()");
+//            Log.d(TAG, "startHdmiAudioPlay()");
 
-            if (play_mode) {
-                if (mSource.is(VideoSource.HDMI)) setAudioMode(AUDIO_MODE_IN_HDMI);
-                if (mSource.is(VideoSource.SDI)) setAudioMode(AUDIO_MODE_IN_SDI);
-            }
-            isPlaying = true;
-
-            int samplingRate = 48000; // in Hz
-            int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
-
-            bufferSize = AudioTrack.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_OUT_STEREO, audioFormat);
-            Log.d(TAG, "AudioTrack  buffer size = " + bufferSize);       // min = 18432
-            audioPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, AudioFormat.CHANNEL_OUT_STEREO, audioFormat, bufferSize, AudioTrack.MODE_STREAM);
-
-            if (audioRecorder != null) {
-                audioRecorder.release();
-                audioRecorder = null;
-            }
-
-            bufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat);
-            //Log.d(TAG, "AudioRecord buffer size = " + bufferSize);       // min = 8960 // the minimum buffer size expressed in bytes
-            audioRecorder = new AudioRecord(MediaRecorder.AudioSource.CAMCORDER, samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat, bufferSize * 48);
-
-            int readShorts = 0;
-            short[] sData = new short[bufferSize / 2];
-            audioPlayer.write(sData, 0, readShorts);
-
-            audioPlayer.flush();
-            audioPlayer.play();
-
-            audioRecorder.startRecording();
+            if (mSource.is(VideoSource.HDMI)) setAudioMode(AUDIO_MODE_IN_HDMI);
+            if (mSource.is(VideoSource.SDI)) setAudioMode(AUDIO_MODE_IN_SDI);
 
 
-            delay_ms(1500, 0);
-            audioPlayer.release();
-//            audioRecorder.release();
-//            audioRecorder = null;
-            audioPlayer = null;
-/*
-            if (!isPlaying) {
-                int samplingRate = 48000; // in Hz
-                int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+//            if (!isPlaying) {
+////                int samplingRate = 48000; // in Hz
+////                int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+//
+////                bufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat);
+//                //Log.d(TAG, "AudioRecord buffer size = " + bufferSize);       // min = 8960 // the minimum buffer size expressed in bytes
+////                audioRecorder = new AudioRecord(MediaRecorder.AudioSource.CAMCORDER, samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat, bufferSize * 2);
+//                audioRecorder = new AudioRecord(mAudioSource, mSamleRate, mChannelCount, mAudioFormat, mBufferSize);
+//                audioRecorder.startRecording();
+//
+//                //samplingRate = 44100;
+//                bufferSize = AudioTrack.getMinBufferSize(mSamleRate, AudioFormat.CHANNEL_OUT_STEREO, mAudioFormat);
+//                //Log.d(TAG, "AudioTrack  buffer size = " + bufferSize);       // min = 18432
+//                audioPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, mSamleRate, AudioFormat.CHANNEL_OUT_STEREO, mAudioFormat, bufferSize, AudioTrack.MODE_STREAM);
+//
+//                audioPlayer.flush();
+//                audioPlayer.play();
+//
+//
+//                isPlaying = true;
+//                bufferSize /= 2;
+//
+//                playThread = new Thread(new Runnable() {
+//                    public void run() {
+//                        if (stopFlag) {
+//                            isPlaying = false;
+//                        }
+//                        if (isPlaying) {
+//                            routingAudio();
+//                        }
+//                    }
+//                }, "AudioPlay Thread");
+//
+//                playThread.start();
+//                //Log.d(TAG, "playback mode = " + audioManager.getParameters("playback"));
+//            }
 
-                bufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat);
-                //Log.d(TAG, "AudioRecord buffer size = " + bufferSize);       // min = 8960 // the minimum buffer size expressed in bytes
-                audioRecorder = new AudioRecord(MediaRecorder.AudioSource.CAMCORDER, samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat, bufferSize * 48);
-
-                //samplingRate = 44100;
-                bufferSize = AudioTrack.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_OUT_STEREO, audioFormat);
-                //Log.d(TAG, "AudioTrack  buffer size = " + bufferSize);       // min = 18432
-                audioPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, AudioFormat.CHANNEL_OUT_STEREO, audioFormat, bufferSize, AudioTrack.MODE_STREAM);
-
-                audioPlayer.flush();
-                audioPlayer.play();
-
-                audioRecorder.startRecording();
-
-                isPlaying = true;
-
-                playThread = new Thread(new Runnable() {
-                    public void run() {
-                        routingAudio();
-                    }
-                }, "AudioPlay Thread");
-
-                playThread.start();
-                //Log.d(TAG, "playback mode = " + audioManager.getParameters("playback"));
-            }
-*/
         }
     }
 
-    private void stopRecordAudio() {
-        int readShorts = 0;
-        short[] sData = new short[bufferSize / 2];
-        audioPlayer.write(sData, 0, readShorts);
+    //
+//    private void routingAudio() {
+//        int readShorts;
+//        short[] sData1 = new short[bufferSize];
+//        short[] sData2 = new short[bufferSize];
+//
+//        readShorts = audioRecorder.read(sData1, 0, bufferSize);
+//
+//        if ((readShorts != AudioRecord.ERROR_INVALID_OPERATION) && (readShorts != AudioRecord.ERROR_BAD_VALUE)) {
+//            audioPlayer.write(sData2, 0, readShorts);
+//            audioPlayer.flush();
+//        }
+//    }
+//
+    private void stopHdmiAudioPlay(boolean play_mode) {
+        if (play_mode) {
+            if (audioManager != null) {
+                setAudioMode(AUDIO_MODE_IN_NONE);
+//                audioManager.abandonAudioFocus(audioFocusChangeListener);
+//                audioManager = null;
+            }
 
-        audioPlayer.flush();
-        audioPlayer.play();
-
-
-        if (audioPlayer != null) {
-            audioPlayer.release();
-            audioPlayer = null;
         }
+//        isPlaying = false;
+////        if (isPlaying) {
+//        stopFlag = true;
+//////            while(isPlaying);
+////        }
+//        if (audioPlayer != null) {
+//            audioPlayer.release();
+//            audioPlayer = null;
+//        }
 //        if (audioRecorder != null) {
 //            audioRecorder.release();
 //            audioRecorder = null;
 //        }
-    }
+//        if (null != playThread) playThread = null;
 
-    private void startRecordAudio() {
-        int samplingRate = 48000; // in Hz
-        int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
-        bufferSize = AudioTrack.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_OUT_STEREO, audioFormat);
-        Log.d(TAG, "AudioTrack  buffer size = " + bufferSize);       // min = 18432
-        audioPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, samplingRate, AudioFormat.CHANNEL_OUT_STEREO, audioFormat, bufferSize, AudioTrack.MODE_STREAM);
-
-        bufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat);
-        //Log.d(TAG, "AudioRecord buffer size = " + bufferSize);       // min = 8960 // the minimum buffer size expressed in bytes
-        audioRecorder = new AudioRecord(MediaRecorder.AudioSource.CAMCORDER, samplingRate, AudioFormat.CHANNEL_IN_STEREO, audioFormat, bufferSize * 48);
-
-        audioPlayer.flush();
-        audioPlayer.play();
-
-        audioRecorder.startRecording();
-
-        playThread = new Thread(this::routingAudio, "AudioPlay Thread");
-
-        playThread.start();
-    }
-
-
-    private void routingAudio() {
-        int readShorts;
-        short[] sData = new short[bufferSize / 2];
-
-        while (isPlaying) {
-            readShorts = audioRecorder.read(sData, 0, bufferSize / 2);
-
-            if ((readShorts != AudioRecord.ERROR_INVALID_OPERATION) && (readShorts != AudioRecord.ERROR_BAD_VALUE)) {
-                audioPlayer.write(sData, 0, readShorts);
-                audioPlayer.flush();
-            }
-            if (stopFlag) {
-                isPlaying = false;
-            }
-
-        }
-    }
-
-    private void stopHdmiAudioPlay() {
-
-        if (isPlaying) {
-            stopFlag = true;
-            //isPlaying = false;
-            if (null != playThread) playThread = null;
-
-            if (audioPlayer != null) {
-                audioPlayer.release();
-                audioPlayer = null;
-            }
-            if (audioRecorder != null) {
-                audioRecorder.release();
-                audioRecorder = null;
-            }
-        }
-
-//        if (audioManager != null) {
-//          audioManager = null;
-//        }
-//        isPlaying = false;
     }
 
     @SuppressLint("HandlerLeak")
@@ -4038,9 +4741,7 @@ public class MainActivity extends AppCompatActivity
 
             if (mSignalInfo != null) {
                 zoomStateSet();
-
             }
-
         }
     };
 
@@ -4070,6 +4771,45 @@ public class MainActivity extends AppCompatActivity
 //        Log.d(TAG, "Scale: " + pref.getFloat("scale", 0));
     }
 
+    private void openPoeView() {
+        Intent sendIntent = new Intent("com.sscctv.poeView");
+        sendIntent.putExtra("location", "open");
+        sendBroadcast(sendIntent);
+    }
+
+    private void closePoeView() {
+        Intent sendIntent = new Intent("com.sscctv.poeView");
+        sendIntent.putExtra("location", "close");
+        sendBroadcast(sendIntent);
+    }
+
+    public void setModeUcc(int input) {
+        String value = String.valueOf(input);
+        try {
+            FileOutputStream file = new FileOutputStream("/sys/class/sdi/en332/ucc");
+            file.write(value.getBytes());
+            file.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
 
 //--------------------------------------------------------------------------------------------------
 /*
